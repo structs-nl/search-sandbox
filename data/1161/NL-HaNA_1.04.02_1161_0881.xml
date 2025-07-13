@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="03429154-8f4c-4e04-addf-9aa047ebe0f0">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:22:01</Created>
+    <LastChange>2023-09-08T03:38:20</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0881.jpg" imageWidth="3505" imageHeight="4801">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_5ebf5546-0fac-4571-ae2f-b3e3f289b643">
+        <RegionRefIndexed index="0" regionRef="adf6c46f-ee8b-48e0-b010-03bdb5b46f8b"/>
+        <RegionRefIndexed index="1" regionRef="a4c06624-4a3d-4473-9501-66a812165288"/>
+        <RegionRefIndexed index="2" regionRef="region_7724e010-c2e2-4898-922b-f8fd5ce3d3ca"/>
+        <RegionRefIndexed index="3" regionRef="region_15c2b022-5ba9-4369-aa89-cae5ddba0864"/>
+        <RegionRefIndexed index="4" regionRef="region_670d8553-5b86-4804-bced-c71bd9fda741"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="adf6c46f-ee8b-48e0-b010-03bdb5b46f8b">
+      <Coords points="0,619 88,619 88,633 0,633"/>
+      <TextLine id="line_97b23f19-8c83-4a6f-9985-33a076b3e8c6">
+        <Coords points="0,566 50,566 69,580 110,580 110,638 0,638"/>
+        <Baseline points="0,625 50,624 82,624"/>
+        <Word id="word_e40af478-4408-4122-a9b3-9aaed7368c5e">
+          <Coords points="0,590 49,589 82,589 82,634 50,634 0,635"/>
+          <TextEquiv>
+            <Unicode>ban</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.22151057246595202">
+          <Unicode>ban</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="28"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="a4c06624-4a3d-4473-9501-66a812165288">
+      <Coords points="0,714 100,714 100,726 0,726"/>
+      <TextLine id="cca4e49b-8bdd-457c-924d-41f9e41aac69">
+        <Coords points="0,670 122,674 122,733 0,733"/>
+        <Baseline points="0,720 50,719 94,719"/>
+        <Word id="word_20bd9462-c5e3-482a-a5f1-ca2e541e8f50">
+          <Coords points="0,685 49,684 94,684 94,729 50,729 0,730"/>
+          <TextEquiv>
+            <Unicode>eer</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.37759504173465314">
+          <Unicode>eer</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="28"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_7724e010-c2e2-4898-922b-f8fd5ce3d3ca">
+      <Coords points="114,715 240,715 240,731 114,731"/>
+      <TextLine id="line_315d1241-b9aa-4e72-b9bf-c91906b9fb47">
+        <Coords points="93,644 218,648 266,677 266,737 224,776 93,771"/>
+        <Baseline points="122,719 172,721 222,723 238,722"/>
+        <Word id="word_ed6a9118-45e6-4ff5-9eac-e809c2b60f2a">
+          <Coords points="123,684 173,686 223,688 236,687 239,732 222,733 172,731 122,729"/>
+          <TextEquiv>
+            <Unicode>ren</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.5365329559958564">
+          <Unicode>ren</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="43"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_15c2b022-5ba9-4369-aa89-cae5ddba0864">
+      <Coords points="166,821 239,821 239,833 166,833"/>
+      <TextLine id="a462129c-8890-4060-86fd-bae71c9eda9c">
+        <Coords points="140,775 194,775 236,753 265,782 265,841 217,886 140,886"/>
+        <Baseline points="169,826 219,827 237,827"/>
+        <Word id="word_ff755c4a-1026-49ef-847a-bd1226fcb9ca">
+          <Coords points="170,791 220,792 237,792 237,837 219,837 169,836"/>
+          <TextEquiv>
+            <Unicode>is</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.316636613885833">
+          <Unicode>is</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="46"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_670d8553-5b86-4804-bced-c71bd9fda741">
+      <Coords points="131,625 232,625 232,642 131,642"/>
+      <TextLine id="line_59a5851b-5b46-4ff7-9a31-cab00b2a0f64">
+        <Coords points="105,581 217,577 241,593 258,591 258,649 105,645"/>
+        <Baseline points="134,633 184,632 230,635"/>
+        <Word id="word_eed33158-f107-4c59-ab33-5981f1a32156">
+          <Coords points="133,598 183,597 232,600 229,645 184,642 134,643"/>
+          <TextEquiv>
+            <Unicode>ts</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.5309682828389141">
+          <Unicode>ts</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="30"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

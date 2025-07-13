@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="1df8637c-034b-446c-80fc-5058913740fd">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:23:22</Created>
+    <LastChange>2023-09-08T03:38:11</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0181.jpg" imageWidth="3642" imageHeight="4876">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_1eeb3030-7893-4ea8-9b84-5871d720faa7">
+        <RegionRefIndexed index="0" regionRef="region_87b3cdc1-17cb-495b-a066-bd55f86cf2c0_1"/>
+        <RegionRefIndexed index="1" regionRef="region_937953e5-c1b1-4751-b93c-f06b0c0d0c3a"/>
+        <RegionRefIndexed index="2" regionRef="f6a17997-29e1-4d2c-a2f3-f4244c7bfd69"/>
+        <RegionRefIndexed index="3" regionRef="e562a334-b742-4325-a99f-7961ed1f686e"/>
+        <RegionRefIndexed index="4" regionRef="region_4f1d463c-5e81-4e84-bdd3-3ecf8af52d58"/>
+        <RegionRefIndexed index="5" regionRef="region_3cc323f0-5338-4712-8bd1-7f3cc5176f11"/>
+        <RegionRefIndexed index="6" regionRef="region_8854e4ed-d74b-4ad9-9888-2e60534342b4"/>
+        <RegionRefIndexed index="7" regionRef="region_03f5929d-87cc-464f-bc5c-65366e01e3d6"/>
+        <RegionRefIndexed index="8" regionRef="cbe63cbf-6f4a-4bd0-bc1c-3e1c87bbc136"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_87b3cdc1-17cb-495b-a066-bd55f86cf2c0_1" custom="structure {type:page-number;}">
+      <Coords points="2884,192 2884,206 2888,206 2892,210 2895,210 2899,213 2906,213 2909,217 2934,217 2938,213 2941,213 2948,206 2948,188 2938,178 2906,178 2902,181 2899,181 2895,185 2892,185"/>
+    </TextRegion>
+    <TextRegion id="region_937953e5-c1b1-4751-b93c-f06b0c0d0c3a">
+      <Coords points="0,1114 43,1114 43,1121 0,1121"/>
+      <TextLine id="cf5ef1ae-41c0-474b-9d20-90f7c473222f">
+        <Coords points="0,1072 55,1072 61,1078 61,1129 55,1122 0,1127"/>
+        <Baseline points="0,1117 37,1117"/>
+        <Word id="word_85828a95-6fe7-49b3-9cdd-42f6584f3d12">
+          <Coords points="0,1082 37,1082 37,1127 0,1127"/>
+          <TextEquiv>
+            <Unicode>i</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.005100431852042675">
+          <Unicode>i</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="21"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="f6a17997-29e1-4d2c-a2f3-f4244c7bfd69">
+      <Coords points="171,1115 213,1115 213,1121 171,1121"/>
+      <TextLine id="f39eb633-fa06-4200-a081-57f04eab677a">
+        <Coords points="156,1080 232,1080 232,1130 156,1148"/>
+        <Baseline points="181,1118 208,1118"/>
+        <Word id="word_f9031450-d040-461b-ad81-be143d5e1f73">
+          <Coords points="181,1083 208,1083 208,1128 181,1128"/>
+          <TextEquiv>
+            <Unicode>39</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.8360390289541334">
+          <Unicode>39</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="26"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="e562a334-b742-4325-a99f-7961ed1f686e">
+      <Coords points="0,2244 42,2244 42,2257 0,2257"/>
+      <TextLine id="cb930a2e-ece8-4e10-aaf2-338d48b858f5">
+        <Coords points="0,2211 63,2214 63,2264 0,2270"/>
+        <Baseline points="0,2252 39,2252"/>
+        <Word id="word_728dcb92-e3b0-44c9-a7f1-0eedf8298400">
+          <Coords points="0,2217 39,2217 39,2262 0,2262"/>
+          <TextEquiv>
+            <Unicode>ge</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.22726786910359134">
+          <Unicode>ge</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="27"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_4f1d463c-5e81-4e84-bdd3-3ecf8af52d58">
+      <Coords points="0,2760 231,2760 231,2785 0,2785"/>
+      <TextLine id="line_0f9bf356-0195-4600-aa5f-928206e9e3b1">
+        <Coords points="0,2684 117,2684 153,2719 232,2720 253,2730 253,2780 232,2774 224,2782 161,2785 121,2806 0,2806"/>
+        <Baseline points="0,2772 50,2772 100,2771 150,2772 200,2772 229,2768"/>
+        <Word id="word_7e28e246-cfc5-4650-b321-86ebfbf9b7f1">
+          <Coords points="0,2737 50,2737 99,2736 151,2737 200,2737 224,2733 230,2778 200,2782 150,2782 100,2781 50,2782 0,2782"/>
+          <TextEquiv>
+            <Unicode>ten</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.9256701275912682">
+          <Unicode>ten</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="38"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_3cc323f0-5338-4712-8bd1-7f3cc5176f11">
+      <Coords points="0,2833 265,2833 265,2863 0,2863"/>
+      <TextLine id="e1d67fb7-e1b3-4026-9bae-8534e534da0c">
+        <Coords points="0,2807 114,2807 154,2787 186,2786 194,2794 213,2794 229,2810 287,2809 287,2860 239,2908 211,2885 158,2885 130,2861 0,2861"/>
+        <Baseline points="0,2851 50,2850 100,2849 150,2848 200,2847 250,2845 263,2847"/>
+        <Word id="word_e96fcfde-5511-46ab-8e95-a433f98dbb36">
+          <Coords points="0,2816 49,2815 78,2814 79,2859 50,2860 0,2861"/>
+          <TextEquiv>
+            <Unicode>als</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_d87c6105-ba78-479d-8f43-8d368e72e86a">
+          <Coords points="105,2814 149,2813 199,2812 249,2810 268,2812 261,2857 250,2855 200,2857 150,2858 105,2859"/>
+          <TextEquiv>
+            <Unicode>andere</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.7124979037113839">
+          <Unicode>als andere</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="28"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_8854e4ed-d74b-4ad9-9888-2e60534342b4">
+      <Coords points="0,2904 247,2904 247,2934 0,2934"/>
+      <TextLine id="dd80bdf1-5f58-4da4-9990-b4ec36cc26ad">
+        <Coords points="0,2860 130,2859 161,2886 212,2886 236,2906 269,2883 269,2933 212,2928 181,2956 153,2956 121,2951 113,2943 81,2943 62,2932 0,2932"/>
+        <Baseline points="0,2921 50,2922 100,2920 150,2919 200,2918 245,2921"/>
+        <Word id="word_70d83d11-f89e-4054-a35f-6fdbcfbe9a48">
+          <Coords points="1,2886 51,2887 99,2885 149,2884 199,2883 247,2886 244,2931 200,2928 150,2929 100,2930 50,2932 0,2931"/>
+          <TextEquiv>
+            <Unicode>vanden</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.953898421765256">
+          <Unicode>vanden</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="27"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_03f5929d-87cc-464f-bc5c-65366e01e3d6">
+      <Coords points="0,2974 257,2974 257,3008 0,3008"/>
+      <TextLine id="a9bdb149-58d8-4043-9c04-c0c39c643f66">
+        <Coords points="0,2932 65,2932 81,2944 113,2944 121,2952 152,2957 180,2957 212,2929 234,2929 255,2944 280,2945 280,2995 231,3032 168,3036 132,3071 114,3062 0,3067"/>
+        <Baseline points="0,2998 50,2995 100,2994 150,2992 200,2989 250,2986 256,2983"/>
+        <Word id="word_0a4188b1-7f00-4f3b-8223-26a34541845a">
+          <Coords points="0,2963 48,2960 99,2959 149,2957 198,2954 240,2952 248,2951 260,2992 251,2996 201,2999 150,3002 100,3004 51,3005 1,3008"/>
+          <TextEquiv>
+            <Unicode>opperhooftt</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.7819755204332791">
+          <Unicode>opperhooftt</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="39"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="cbe63cbf-6f4a-4bd0-bc1c-3e1c87bbc136">
+      <Coords points="2812,204 2997,204 2997,233 2812,233"/>
+      <TextLine id="line_805f73a5-1568-4b5b-9a5e-1cce30aad281">
+        <Coords points="2788,159 2829,151 2952,150 3020,181 3020,233 3006,246 2980,230 2940,242 2921,234 2877,246 2853,242 2844,249 2831,249 2820,238 2788,241"/>
+        <Baseline points="2813,213 2863,218 2913,218 2963,219 2996,220"/>
+        <Word id="word_018c9d82-0145-4a1e-b2d4-170d5fd2e6c3">
+          <Coords points="2816,178 2866,183 2913,183 2964,184 2997,185 2996,230 2963,229 2913,228 2862,228 2812,223"/>
+          <TextEquiv>
+            <Unicode>703</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.9776832549367878">
+          <Unicode>703</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="65"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

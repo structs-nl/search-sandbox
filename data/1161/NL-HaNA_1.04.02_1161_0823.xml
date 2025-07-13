@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="ea14040e-b9ef-4968-b6af-6d104daa85b6">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:20:28</Created>
+    <LastChange>2023-09-08T03:38:19</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0823.jpg" imageWidth="3567" imageHeight="4801">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_ecf552f4-9593-473f-8c8e-e3ad68db7157">
+        <RegionRefIndexed index="0" regionRef="d28c3197-43f0-425c-b02c-cfd82b7b9111"/>
+        <RegionRefIndexed index="1" regionRef="region_9c036c85-7f79-4775-b80d-bb353273f8b9"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="d28c3197-43f0-425c-b02c-cfd82b7b9111">
+      <Coords points="917,565 944,565 944,578 917,578"/>
+      <TextLine id="line_56628135-fb68-466a-8c47-45ee07fafab5">
+        <Coords points="846,453 891,461 1014,462 1014,612 846,613"/>
+        <Baseline points="920,567 941,575"/>
+        <Word id="word_15bf232a-1b06-44bb-a30c-d8c8b5765d6b">
+          <Coords points="932,534 953,542 937,584 916,576"/>
+          <TextEquiv>
+            <Unicode>„</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.8728057742118834">
+          <Unicode>„</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="125"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_9c036c85-7f79-4775-b80d-bb353273f8b9">
+      <Coords points="1005,673 1346,673 1346,723 1005,723"/>
+      <TextLine id="line_10527d17-ba9b-4781-9494-afcd46d13cd4">
+        <Coords points="931,597 1121,597 1137,588 1236,588 1256,605 1417,604 1417,754 931,762"/>
+        <Baseline points="1005,680 1055,686 1105,690 1155,696 1205,701 1255,709 1305,714 1344,717"/>
+        <Word id="word_d16df114-6d11-4049-875f-0e53e79f365c">
+          <Coords points="1009,645 1059,651 1108,655 1145,660 1139,704 1104,700 1054,696 1004,690"/>
+          <TextEquiv>
+            <Unicode>S.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_f2c73b9e-9e6f-4f22-bf09-11fe1273e725">
+          <Coords points="1213,668 1260,674 1308,679 1347,682 1343,727 1304,724 1254,719 1207,712"/>
+          <TextEquiv>
+            <Unicode>P-</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.38983806775768437">
+          <Unicode>S. P-</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="54"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

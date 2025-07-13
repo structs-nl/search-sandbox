@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="4b91a8cd-748c-4626-8542-eb39d78a5dba">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:23:12</Created>
+    <LastChange>2023-09-08T03:38:20</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0940.jpg" imageWidth="3724" imageHeight="4773">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_7b288123-76bc-4ccc-9009-64e8356a281a">
+        <RegionRefIndexed index="0" regionRef="a95b4c8d-4772-4a13-8777-a8d5f6a875de"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="a95b4c8d-4772-4a13-8777-a8d5f6a875de">
+      <Coords points="2256,517 3364,517 3364,552 2256,552"/>
+      <TextLine id="c193238f-edba-4d6a-9a7b-2705908b4006">
+        <Coords points="2242,476 2322,472 2340,485 2352,476 2376,481 2435,472 2443,480 2488,481 2532,468 2548,477 2592,477 2604,465 2620,464 2671,468 2689,481 2696,477 2708,488 2728,489 2756,476 2791,472 2808,484 2823,484 2852,466 2879,480 2899,460 2944,460 2968,473 3023,473 3036,460 3051,460 3063,472 3084,460 3192,460 3220,480 3284,480 3320,500 3377,510 3371,547 3316,551 3300,563 3248,558 3229,547 3196,559 2960,554 2828,558 2772,567 2696,562 2680,571 2368,571 2336,562 2242,563"/>
+        <Baseline points="2257,533 2307,539 2357,535 2407,532 2457,531 2507,531 2557,532 2607,530 2657,529 2707,531 2757,531 2807,532 2857,532 2907,531 2957,532 3007,535 3057,535 3107,535 3157,537 3207,537 3257,537 3307,537 3357,536 3363,533"/>
+        <Word id="word_5435c70e-1dd4-4eb9-9a06-c3cffca81718">
+          <Coords points="2261,498 2311,504 2354,500 2368,499 2371,544 2358,545 2306,549 2256,543"/>
+          <TextEquiv>
+            <Unicode>Cari</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_111fb403-8f88-478e-bf94-1d90ca4d1d81">
+          <Coords points="2396,498 2405,497 2456,496 2507,496 2558,497 2596,495 2598,540 2557,542 2507,541 2457,541 2408,542 2399,542"/>
+          <TextEquiv>
+            <Unicode>millino</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_19b0fde8-1e0e-448e-bd1d-6316f31837b3">
+          <Coords points="2625,494 2657,494 2708,496 2739,496 2739,541 2707,541 2657,539 2626,539"/>
+          <TextEquiv>
+            <Unicode>door</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_7d032535-121b-466f-94c7-33793912c43e">
+          <Coords points="2768,496 2808,497 2824,497 2824,542 2807,542 2767,541"/>
+          <TextEquiv>
+            <Unicode>de</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_34818af7-ebf1-4406-bb91-87de6ca3e189">
+          <Coords points="2853,497 2857,497 2906,496 2910,496 2909,541 2907,541 2857,542 2853,542"/>
+          <TextEquiv>
+            <Unicode>E.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_e0bf8df3-e38e-4817-b3c5-7c41fa31402a">
+          <Coords points="2939,497 2958,497 3009,500 3057,500 3107,500 3158,502 3193,502 3193,547 3157,547 3107,545 3057,545 3006,545 2957,542 2938,542"/>
+          <TextEquiv>
+            <Unicode>directeur</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_46497427-7922-401b-a181-30cd5d2dce9c">
+          <Coords points="3222,502 3257,502 3307,502 3347,502 3356,501 3367,542 3357,546 3307,547 3257,547 3222,547"/>
+          <TextEquiv>
+            <Unicode>Arent</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.7917882503314063">
+          <Unicode>Cari millino door de E. directeur Arent</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="31"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

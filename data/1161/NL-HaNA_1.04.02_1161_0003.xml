@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="d4e2ec9a-4c1b-4a71-af42-ec6ec5395d54">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:21:11</Created>
+    <LastChange>2023-09-08T03:38:08</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0003.jpg" imageWidth="3471" imageHeight="4971">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_bdd33764-9b3c-4c3a-a370-301296cab9fa">
+        <RegionRefIndexed index="0" regionRef="region_259a2a15-ef30-4a0b-bae6-3ee5de1ab3fd_3"/>
+        <RegionRefIndexed index="1" regionRef="region_3ceb17bc-5db9-4af2-9cb4-19f9b8e91b83_2"/>
+        <RegionRefIndexed index="2" regionRef="region_1a5cf8f8-84ab-4950-b347-4d353e499808_1"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_259a2a15-ef30-4a0b-bae6-3ee5de1ab3fd_3" custom="structure {type:paragraph;}">
+      <Coords points="2973,3212 2956,3229 2956,3236 2959,3239 2959,3246 2956,3250 2956,3253 2949,3260 2949,3267 2952,3270 2952,3273 2956,3277 2956,3280 2963,3287 2963,3290 2973,3300 2976,3300 2980,3304 2983,3304 2986,3307 3000,3307 3003,3304 3003,3300 3007,3297 3007,3287 3010,3284 3010,3270 3013,3267 3013,3256 3003,3246 3003,3236 3007,3233 3000,3226 3000,3223 2996,3223 2990,3216 2990,3212"/>
+    </TextRegion>
+    <TextRegion id="region_3ceb17bc-5db9-4af2-9cb4-19f9b8e91b83_2" custom="structure {type:paragraph;}">
+      <Coords points="2932,3256 2929,3260 2929,3270 2932,3273 2935,3273 2939,3270 2939,3263 2942,3260 2939,3260 2935,3256"/>
+    </TextRegion>
+    <TextRegion id="region_1a5cf8f8-84ab-4950-b347-4d353e499808_1" custom="structure {type:paragraph;}">
+      <Coords points="2976,3548 2963,3548 2956,3555 2952,3555 2935,3572 2932,3572 2929,3575 2922,3575 2915,3582 2912,3582 2905,3588 2888,3588 2885,3592 2878,3592 2868,3599 2861,3599 2851,3605 2844,3605 2841,3609 2837,3609 2820,3626 2817,3626 2810,3633 2810,3636 2807,3639 2807,3646 2803,3649 2803,3653 2796,3660 2793,3660 2790,3663 2780,3663 2776,3666 2773,3666 2766,3677 2766,3710 2769,3714 2769,3741 2766,3744 2766,3758 2773,3765 2773,3768 2786,3782 2790,3782 2793,3785 2796,3785 2807,3795 2810,3795 2813,3799 2813,3802 2817,3805 2817,3809 2841,3832 2841,3836 2851,3846 2851,3849 2861,3860 2861,3863 2868,3870 2868,3873 2878,3883 2878,3887 2885,3893 2885,3924 2881,3927 2881,3934 2878,3937 2878,3988 2881,3992 2881,3995 2885,3998 2885,4005 2891,4015 2891,4019 2888,4022 2888,4026 2885,4029 2885,4032 2891,4043 2891,4053 2895,4056 2895,4063 2905,4073 2905,4076 2908,4080 2908,4087 2912,4090 2912,4100 2902,4110 2898,4110 2912,4124 2912,4127 2915,4131 2915,4134 2918,4137 2918,4141 2915,4144 2915,4148 2905,4158 2905,4161 2898,4168 2895,4168 2874,4188 2874,4192 2868,4198 2864,4198 2857,4205 2857,4209 2854,4212 2854,4219 2837,4236 2837,4259 2834,4263 2834,4293 2837,4297 2837,4303 2844,4310 2844,4314 2847,4314 2854,4320 2857,4320 2861,4324 2864,4324 2878,4337 2878,4341 2895,4341 2895,4337 2902,4331 2905,4331 2912,4324 2915,4324 2918,4320 2922,4320 2929,4310 2929,4300 2932,4297 2932,4270 2935,4266 2935,4242 2939,4239 2939,4232 2935,4229 2935,4202 2932,4198 2932,4181 2929,4178 2929,4161 2925,4158 2925,4148 2922,4144 2922,4137 2932,4127 2932,4124 2935,4120 2935,4097 2949,4076 2949,4070 2952,4066 2952,4059 2956,4056 2956,4053 2959,4049 2959,4046 2969,4036 2969,4032 2976,4026 2976,4019 2990,4005 2990,4002 2996,3995 2996,3992 3000,3988 3000,3985 3007,3978 3007,3975 3010,3971 3010,3968 3017,3958 3017,3951 3020,3948 3020,3941 3024,3937 3024,3927 3027,3924 3027,3914 3030,3910 3030,3897 3034,3893 3034,3890 3041,3880 3041,3873 3047,3863 3047,3856 3051,3853 3051,3843 3054,3839 3054,3826 3057,3822 3057,3778 3061,3775 3061,3700 3057,3697 3057,3687 3054,3683 3054,3677 3051,3673 3051,3663 3044,3653 3044,3646 3041,3643 3041,3636 3037,3633 3037,3629 3034,3626 3034,3622 3030,3619 3030,3616 3027,3612 3027,3609 3013,3595 3013,3592 3010,3588 3010,3585 3007,3582 3007,3578 2996,3568 2996,3565 2993,3561 2993,3558 2986,3551 2980,3551"/>
+    </TextRegion>
+  </Page>
+</PcGts>

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="a5040ae5-c5ce-4067-9d43-d9252304505a">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:19:54</Created>
+    <LastChange>2023-09-08T03:38:08</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0002.jpg" imageWidth="3464" imageHeight="5046">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_71b0f029-944f-4f24-ac28-85ab751044fe">
+        <RegionRefIndexed index="0" regionRef="region_133011ea-a499-4a8a-bdfe-3aed249d4bd9_1"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_133011ea-a499-4a8a-bdfe-3aed249d4bd9_1" custom="structure {type:paragraph;}">
+      <Coords points="3349,3517 3346,3517 3342,3521 3339,3521 3335,3524 3332,3524 3305,3551 3302,3551 3295,3558 3291,3558 3291,3561 3264,3588 3264,3592 3261,3595 3261,3598 3258,3602 3258,3622 3254,3626 3254,3639 3258,3642 3258,3666 3261,3670 3261,3690 3264,3693 3264,3707 3261,3710 3261,3754 3258,3757 3258,3774 3261,3778 3261,3788 3264,3791 3264,3795 3271,3801 3271,3805 3275,3808 3275,3812 3278,3815 3278,3818 3281,3822 3281,3828 3285,3832 3285,3839 3288,3842 3288,3852 3291,3856 3291,3876 3295,3879 3295,3883 3302,3889 3302,3899 3305,3903 3308,3903 3312,3906 3315,3906 3329,3920 3332,3920 3335,3923 3339,3923 3342,3920 3349,3920 3349,3916 3352,3913 3352,3910 3356,3906 3356,3899 3359,3896 3359,3883 3363,3879 3363,3856 3366,3852 3366,3801 3369,3798 3369,3741 3366,3737 3366,3680 3363,3676 3363,3670 3366,3666 3366,3639 3369,3636 3369,3575 3366,3571 3366,3548 3363,3544 3363,3534 3359,3531 3359,3524 3356,3521 3352,3521"/>
+    </TextRegion>
+  </Page>
+</PcGts>

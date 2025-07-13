@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="9a026637-1616-4344-bb3f-ee581c654e3d">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:19:52</Created>
+    <LastChange>2023-09-08T03:38:10</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0116.jpg" imageWidth="3478" imageHeight="4985">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_e55dcd3d-38fb-4e11-b642-859aa3d229a1">
+        <RegionRefIndexed index="0" regionRef="region_b7b390a5-76e1-4821-a568-3649c648290f_2"/>
+        <RegionRefIndexed index="1" regionRef="region_b2f26e07-7455-4803-b08c-61e1f0d67add_3"/>
+        <RegionRefIndexed index="2" regionRef="region_916dbddd-e420-497b-88f7-bea61d1e762e_1"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_b7b390a5-76e1-4821-a568-3649c648290f_2" custom="structure {type:header;}">
+      <Coords points="723,492 720,492 717,489 710,489 706,492 703,492 689,506 689,509 686,513 686,520 683,523 683,547 686,550 700,550 706,543 706,540 710,537 710,533 713,530 713,526 717,523 717,520 720,516 720,513 723,509"/>
+    </TextRegion>
+    <TextRegion id="region_b2f26e07-7455-4803-b08c-61e1f0d67add_3" custom="structure {type:header;}">
+      <Coords points="798,424 798,428 802,431 802,455 805,458 805,475 808,479 808,482 815,489 815,492 839,516 839,520 846,526 873,526 876,523 971,523 975,520 992,520 995,516 1012,516 1016,513 1039,513 1043,509 1253,509 1257,513 1280,513 1284,516 1342,516 1345,520 1403,520 1406,523 1410,520 1467,520 1471,516 1518,516 1522,520 1532,520 1535,523 1559,523 1562,526 1576,526 1579,530 1593,530 1596,533 1613,533 1617,537 1630,537 1634,540 1644,540 1647,543 1695,543 1698,547 1722,547 1725,543 1746,543 1749,540 1756,540 1763,533 1763,530 1766,526 1766,503 1770,499 1770,465 1766,462 1766,448 1763,445 1763,421 1759,418 1759,397 1742,380 1739,380 1736,377 1732,377 1722,370 1715,370 1712,367 1688,367 1685,363 1674,363 1671,367 1644,367 1641,370 1613,370 1610,374 1457,374 1454,377 1423,377 1420,380 1382,380 1379,384 1335,384 1331,387 1304,387 1301,391 1287,391 1284,394 1196,394 1192,391 1185,391 1182,387 1128,387 1124,384 1104,384 1100,380 1080,380 1077,377 1046,377 1043,374 1022,374 1019,370 1005,370 1002,367 992,367 988,363 978,363 975,367 965,367 961,363 951,363 948,360 920,360 917,357 873,357 866,363 859,363 856,367 839,367 836,370 832,370 825,377 822,377 819,380 819,384 812,391 812,397 808,401 808,404 802,411 802,421"/>
+      <TextLine id="line_696b550c-044b-43e8-8562-02c79a58fc1f">
+        <Coords points="822,460 879,457 923,414 937,417 952,405 995,405 1011,421 1079,424 1095,437 1132,405 1155,414 1201,414 1210,405 1290,409 1342,460 1378,464 1402,442 1442,442 1459,433 1486,406 1522,405 1534,417 1653,421 1677,445 1694,445 1709,457 1738,457 1738,487 1693,488 1657,508 1629,512 1522,512 1509,499 1019,503 1007,512 987,501 822,499"/>
+        <Baseline points="837,469 887,469 937,467 987,466 1037,466 1087,467 1137,467 1187,467 1237,468 1287,469 1337,470 1387,471 1437,471 1487,472 1537,473 1587,474 1637,477 1687,478 1724,480"/>
+        <Word id="word_3936186f-de0e-4f17-855f-bab1bc60596d">
+          <Coords points="837,434 887,434 936,432 986,431 1037,431 1088,432 1137,432 1147,432 1147,477 1137,477 1087,477 1037,476 987,476 937,477 887,479 837,479"/>
+          <TextEquiv>
+            <Unicode>Reguter</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_0f273ba1-c6d3-49fe-a23f-afde52fbd01d">
+          <Coords points="1193,432 1238,433 1288,434 1326,435 1325,480 1287,479 1237,478 1192,477"/>
+          <TextEquiv>
+            <Unicode>der</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_09d74e2f-a80b-4239-89db-86d2c57b9daa">
+          <Coords points="1370,436 1388,436 1437,436 1488,437 1538,438 1588,439 1639,442 1688,443 1726,445 1723,490 1687,488 1636,487 1587,484 1537,483 1487,482 1437,481 1387,481 1369,481"/>
+          <TextEquiv>
+            <Unicode>Papieren</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.9282260663036854">
+          <Unicode>Reguter der Papieren</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="36"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_916dbddd-e420-497b-88f7-bea61d1e762e_1" custom="structure {type:paragraph;}">
+      <Coords points="1168,438 1172,438 1175,441 1179,441 1182,445 1185,445 1189,448 1192,448 1196,452 1206,452 1209,455 1223,455 1226,458 1257,458 1260,462 1270,462 1274,458 1335,458 1338,455 1369,455 1372,452 1379,452 1382,455 1399,455 1403,452 1406,452 1410,455 1437,455 1440,452 1447,452 1450,448 1454,448 1457,445 1460,445 1464,441 1460,438 1450,438 1447,435 1440,435 1437,431 1376,431 1372,428 1365,428 1362,424 1355,424 1352,421 1348,421 1345,418 1338,418 1335,414 1314,414 1311,411 1301,411 1297,407 1287,407 1284,404 1270,404 1267,401 1213,401 1209,404 1199,404 1196,407 1192,407 1182,418 1182,424 1179,428 1179,431 1172,438"/>
+    </TextRegion>
+  </Page>
+</PcGts>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="0c991c1e-2c5c-496d-9257-71bc592e44fb">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:19:44</Created>
+    <LastChange>2023-09-08T03:38:21</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0980.jpg" imageWidth="3771" imageHeight="4773">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_c81ee1cc-e42f-497b-ac59-b9377bdcb63e">
+        <RegionRefIndexed index="0" regionRef="region_6fc1ae29-59c0-468b-9ca5-0005d1f6ac59_4"/>
+        <RegionRefIndexed index="1" regionRef="region_e5468b41-0a96-4814-863f-cff6e8a5b8ed_3"/>
+        <RegionRefIndexed index="2" regionRef="region_f4f9aa38-4824-4d27-823d-0bcf6bb4568e_2"/>
+        <RegionRefIndexed index="3" regionRef="region_e7dcbd8c-e173-4ce4-965e-4865b079da81_1"/>
+        <RegionRefIndexed index="4" regionRef="region_8ada2b2c-9e10-4490-a33b-e2115a65aea2"/>
+        <RegionRefIndexed index="5" regionRef="region_0effd75e-92f5-4240-a91d-dd527c8cc101"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_6fc1ae29-59c0-468b-9ca5-0005d1f6ac59_4" custom="structure {type:paragraph;}">
+      <Coords points="1937,847 1944,847 1948,851 1952,851 1955,854 1959,854 1963,858 1981,858 1978,858 1967,847"/>
+    </TextRegion>
+    <TextRegion id="region_e5468b41-0a96-4814-863f-cff6e8a5b8ed_3" custom="structure {type:paragraph;}">
+      <Coords points="3679,884 3675,880 3675,877 3672,873 3664,873 3661,877 3642,877 3631,888 3613,888 3609,891 3605,891 3594,902 3594,906 3602,906 3605,910 3620,910 3624,906 3631,906 3635,910 3638,910 3642,913 3646,913 3649,910 3672,910 3679,902"/>
+    </TextRegion>
+    <TextRegion id="region_f4f9aa38-4824-4d27-823d-0bcf6bb4568e_2" custom="structure {type:paragraph;}">
+      <Coords points="3646,2037 3635,2037 3631,2033 3627,2037 3624,2037 3620,2040 3616,2040 3616,2044 3609,2051 3609,2062 3616,2070 3620,2066 3627,2066 3638,2055 3642,2055 3646,2051"/>
+    </TextRegion>
+    <TextRegion id="region_e7dcbd8c-e173-4ce4-965e-4865b079da81_1" custom="structure {type:paragraph;}">
+      <Coords points="3756,3793 3734,3771 3727,3771 3723,3775 3719,3775 3716,3779 3712,3779 3708,3782 3705,3782 3701,3786 3697,3786 3694,3790 3690,3790 3686,3793 3679,3793 3672,3801 3668,3801 3661,3808 3661,3819 3657,3823 3657,3860 3661,3863 3672,3863 3675,3860 3679,3860 3683,3856 3694,3856 3697,3860 3727,3860 3734,3852 3734,3849 3738,3845 3738,3841 3742,3838 3742,3830 3745,3827 3745,3823 3749,3819 3749,3812 3753,3808 3753,3797"/>
+    </TextRegion>
+    <TextRegion id="region_8ada2b2c-9e10-4490-a33b-e2115a65aea2">
+      <Coords points="2294,527 3296,527 3296,561 2294,561"/>
+      <TextLine id="line_159bd6e2-81d6-4271-b609-b1e3997a5fab">
+        <Coords points="2023,141 2501,146 3570,134 3570,689 3534,724 3508,720 3413,811 3371,840 3305,847 3229,795 3153,796 3135,812 3121,812 3097,811 3077,799 2982,796 2889,796 2877,807 2845,808 2797,803 2789,795 2773,795 2758,780 2589,792 2493,771 2481,759 2381,764 2372,755 2317,743 2276,748 2260,735 2245,744 2209,716 2153,728 2097,728 2077,719 2023,715"/>
+        <Baseline points="2300,550 2350,547 2400,546 2450,545 2500,545 2550,543 2600,544 2650,544 2700,543 2750,543 2800,543 2850,544 2900,544 2950,544 3000,544 3050,545 3100,547 3150,548 3200,548 3250,548 3294,550"/>
+        <Word id="word_debe1dbe-d698-46ca-b4f0-4ede415faea3">
+          <Coords points="2298,515 2348,512 2399,511 2449,510 2499,510 2499,555 2450,555 2400,556 2351,557 2301,560"/>
+          <TextEquiv>
+            <Unicode>den</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_792db2f6-eddf-43b0-87b1-b8b244e30136">
+          <Coords points="2564,510 2599,509 2631,509 2631,554 2600,554 2565,555"/>
+          <TextEquiv>
+            <Unicode>2</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_c9384871-058e-4795-8b7a-6511764d1b9b">
+          <Coords points="2684,512 2687,511 2750,508 2800,508 2851,509 2900,509 2950,509 3000,509 3030,510 3029,555 3000,554 2950,554 2900,554 2850,554 2800,553 2750,553 2704,552 2701,553"/>
+          <TextEquiv>
+            <Unicode>uaeme</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_21774dd3-3bcc-4766-a691-65ae49994776">
+          <Coords points="3103,512 3108,513 3151,513 3200,513 3250,513 3295,515 3293,560 3250,558 3200,558 3150,558 3098,557 3093,556"/>
+          <TextEquiv>
+            <Unicode>172</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.04954634924430344">
+          <Unicode>den 2 uaeme 172</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="173"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_0effd75e-92f5-4240-a91d-dd527c8cc101">
+      <Coords points="3564,912 3644,912 3644,938 3564,938"/>
+      <TextLine id="a6b3e385-6f87-47b5-9ae4-834d2c8d0dd2">
+        <Coords points="3288,336 3489,352 3533,380 3580,388 3620,428 3645,425 3712,484 3728,484 3748,504 3769,504 3769,1058 3652,1053 3533,934 3522,937 3511,926 3346,926 3288,940"/>
+        <Baseline points="3565,932 3615,922 3643,920"/>
+        <TextStyle xHeight="137"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

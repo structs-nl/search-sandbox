@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="12df3684-c1f9-43da-9890-565f60c1d5da">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:21:25</Created>
+    <LastChange>2023-09-08T03:38:14</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0429.jpg" imageWidth="3498" imageHeight="4780">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_ca1e4853-6a25-47ba-8ad0-b7ee039dd570">
+        <RegionRefIndexed index="0" regionRef="c0a7874b-8291-4895-986d-614498939334"/>
+        <RegionRefIndexed index="1" regionRef="region_0d6274f6-f586-4c34-a3b3-e3b5d4b01e44"/>
+        <RegionRefIndexed index="2" regionRef="ea6724b3-c01a-4c55-8368-e542173b5789"/>
+        <RegionRefIndexed index="3" regionRef="region_1e9777b6-e400-4c6b-a131-6a63d8e117a5"/>
+        <RegionRefIndexed index="4" regionRef="region_4cf2d8aa-efeb-4919-bf96-f733621d10d8"/>
+        <RegionRefIndexed index="5" regionRef="region_6f7a1e8b-0fed-4bdc-9d46-de6fce53771c"/>
+        <RegionRefIndexed index="6" regionRef="region_524e1e2c-cfa0-45db-a5dd-616c02834a53"/>
+        <RegionRefIndexed index="7" regionRef="region_9bae11de-6ebf-4db4-a6bc-025d9004d1ba"/>
+        <RegionRefIndexed index="8" regionRef="region_2e87d120-a15e-49b9-8003-ed0dbf91109a"/>
+        <RegionRefIndexed index="9" regionRef="region_489592c4-774e-4450-8929-ed064225d120"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="c0a7874b-8291-4895-986d-614498939334">
+      <Coords points="0,1618 26,1618 26,1634 0,1634"/>
+      <TextLine id="line_9c8df88c-07cc-4595-9bab-026b7857803a">
+        <Coords points="0,1582 48,1586 48,1635 0,1633"/>
+        <Baseline points="0,1626 25,1623"/>
+        <TextStyle xHeight="51"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_0d6274f6-f586-4c34-a3b3-e3b5d4b01e44">
+      <Coords points="0,1793 24,1793 24,1800 0,1800"/>
+      <TextLine id="d5af964e-0b0d-4766-9913-4d1d820d3f90">
+        <Coords points="0,1733 24,1757 44,1758 44,1807 0,1805"/>
+        <Baseline points="0,1796 21,1795"/>
+        <TextStyle xHeight="54"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="ea6724b3-c01a-4c55-8368-e542173b5789">
+      <Coords points="10,2598 173,2598 173,2610 10,2610"/>
+      <TextLine id="da9d7ffe-c80c-4cfe-9806-94f6b9bbacdc">
+        <Coords points="0,2542 169,2545 195,2566 195,2616 170,2636 149,2627 0,2627"/>
+        <Baseline points="11,2605 61,2604 111,2603 161,2603 172,2603"/>
+        <Word id="word_3caa1ee7-58db-4b8a-902e-cada62e2e8df">
+          <Coords points="10,2570 60,2569 110,2568 161,2568 172,2568 172,2613 161,2613 111,2613 61,2614 11,2615"/>
+          <TextEquiv>
+            <Unicode>chulden</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.5986137970500335">
+          <Unicode>chulden</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="33"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_1e9777b6-e400-4c6b-a131-6a63d8e117a5">
+      <Coords points="0,2670 51,2670 51,2685 0,2685"/>
+      <TextLine id="line_4d284309-d602-4079-ad2d-0ae8b917f3ef">
+        <Coords points="0,2626 50,2626 71,2637 71,2686 0,2684"/>
+        <Baseline points="0,2677 48,2674"/>
+        <TextStyle xHeight="54"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_4cf2d8aa-efeb-4919-bf96-f733621d10d8">
+      <Coords points="0,2752 33,2752 33,2761 0,2761"/>
+      <TextLine id="line_7758bf15-39b4-462b-bfb3-6684df68aaf8">
+        <Coords points="0,2719 52,2718 52,2767 0,2767"/>
+        <Baseline points="0,2757 29,2755"/>
+        <TextStyle xHeight="52"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_6f7a1e8b-0fed-4bdc-9d46-de6fce53771c">
+      <Coords points="124,2749 169,2749 169,2757 124,2757"/>
+      <TextLine id="line_1452539b-dab0-4f86-a088-3d0dc261f4ab">
+        <Coords points="103,2699 137,2699 171,2711 182,2707 189,2714 189,2764 172,2754 164,2762 103,2762"/>
+        <Baseline points="127,2753 166,2752"/>
+        <TextStyle xHeight="26"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_524e1e2c-cfa0-45db-a5dd-616c02834a53">
+      <Coords points="94,2668 173,2668 173,2680 94,2680"/>
+      <TextLine id="b592a96c-917e-4260-ac1a-dc90a4e09e98">
+        <Coords points="74,2624 136,2624 164,2636 176,2629 193,2636 193,2685 160,2707 136,2698 74,2698"/>
+        <Baseline points="98,2674 148,2674 170,2673"/>
+        <Word id="word_bad0aec6-2a45-49f2-b752-d8723f712f8c">
+          <Coords points="98,2639 148,2639 168,2638 170,2683 148,2684 98,2684"/>
+          <TextEquiv>
+            <Unicode>tien</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.8580328045738519">
+          <Unicode>tien</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="30"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_9bae11de-6ebf-4db4-a6bc-025d9004d1ba">
+      <Coords points="0,2912 30,2912 30,2921 0,2921"/>
+      <TextLine id="line_5f24ef18-6a91-4b52-bcee-28d6baa10cf1">
+        <Coords points="0,2865 38,2865 51,2878 51,2928 0,2926"/>
+        <Baseline points="6,2916 28,2916"/>
+        <TextStyle xHeight="33"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_2e87d120-a15e-49b9-8003-ed0dbf91109a">
+      <Coords points="0,3937 73,3937 73,3952 0,3952"/>
+      <TextLine id="line_2bc8b30f-a73d-4af8-b9f6-c775352ce4d8">
+        <Coords points="0,3896 58,3900 70,3909 91,3906 91,3954 70,3951 46,3963 0,3963"/>
+        <Baseline points="0,3944 50,3942 68,3942"/>
+        <TextStyle xHeight="30"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_489592c4-774e-4450-8929-ed064225d120">
+      <Coords points="81,3936 180,3936 180,3948 81,3948"/>
+      <TextLine id="line_44222e87-c29c-4fc3-8036-4065b18501bf">
+        <Coords points="64,3876 163,3875 200,3904 200,3953 172,3971 64,3966"/>
+        <Baseline points="88,3942 138,3942 177,3941"/>
+        <Word id="word_91f994a1-6431-415c-9ece-14f0a3778d8f">
+          <Coords points="88,3907 138,3907 176,3906 177,3951 138,3952 88,3952"/>
+          <TextEquiv>
+            <Unicode>etc</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.5559170827735317">
+          <Unicode>etc</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="37"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

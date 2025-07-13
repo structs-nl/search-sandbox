@@ -52,9 +52,9 @@ https://lucene.apache.org/core/4_1_0/facet/org/apache/lucene/facet/doc-files/use
 
 docker start -i search-sandbox
 mkdir ./opt/data
-cd app
+cd app/index
 mvn package
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../opt/data -index ./output.json
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../:../opt/data -index ../transform/output.json
 
 
 
@@ -66,7 +66,7 @@ java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../opt/data -index ./out
 **Docker create**
 
 docker build -t search-sandbox-dev-env .
-docker run --name search-sandbox -it -v "./shared:/app" search-sandbox-dev-env
+docker run --name search-sandbox -it -v "./:/app" search-sandbox-dev-env
 
 
 ### IndexerPointerStore

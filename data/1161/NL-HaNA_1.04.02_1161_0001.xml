@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="49b4f74e-6422-441f-9b81-10f311ea11ff">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:21:18</Created>
+    <LastChange>2023-09-08T03:38:08</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0001.jpg" imageWidth="3655" imageHeight="4971">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_5a39a59a-e1ed-4858-9e2e-123b6d63ad68">
+        <RegionRefIndexed index="0" regionRef="region_d6e6dba3-555c-4b11-9585-46c918c8cc18_1"/>
+        <RegionRefIndexed index="1" regionRef="region_0eef60d8-3e1f-441d-aade-27e1818cc5ce_3"/>
+        <RegionRefIndexed index="2" regionRef="region_d0892ef9-1325-4383-83e2-8f4108e75a96_2"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_d6e6dba3-555c-4b11-9585-46c918c8cc18_1" custom="structure {type:header;}">
+      <Coords points="892,400 896,403 899,403 903,407 921,407 924,403 942,403 946,400 953,400 957,396 964,396 967,393 974,393 978,389 982,389 992,378 992,375 989,375 985,371 928,371 924,375 914,375 910,378 907,378 892,393"/>
+      <TextLine id="line_9cadc8a9-82be-46d9-94b5-ff3fc0bee8d0">
+        <Coords points="737,292 807,292 835,316 902,336 958,280 1078,280 1104,301 1209,297 1238,326 1238,357 1217,359 1201,371 1125,371 882,423 858,435 779,451 771,459 737,459"/>
+        <Baseline points="752,451 802,438 852,427 902,408 952,393 1002,384 1052,360 1102,352 1152,350 1202,349 1224,350"/>
+        <Word id="word_54aa6a4b-d435-43e9-b9b9-288112901988">
+          <Coords points="743,417 793,404 844,393 890,375 942,359 980,352 988,397 955,403 906,417 854,437 805,448 755,461"/>
+          <TextEquiv>
+            <Unicode>1662</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_4e8de33f-d0d2-49f7-8d68-6d128a883ff4">
+          <Coords points="1013,365 1019,349 1096,317 1151,315 1201,314 1219,315 1217,360 1202,359 1152,360 1104,362 1061,363 1056,379"/>
+          <TextEquiv>
+            <Unicode>des</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.7750691026255292">
+          <Unicode>1662 des</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="44"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_0eef60d8-3e1f-441d-aade-27e1818cc5ce_3" custom="structure {type:header;}">
+      <Coords points="1110,335 1114,335 1117,339 1124,339 1128,335"/>
+    </TextRegion>
+    <TextRegion id="region_d0892ef9-1325-4383-83e2-8f4108e75a96_2" custom="structure {type:header;}">
+      <Coords points="1139,335 1139,346 1142,350 1146,350 1149,353 1156,353 1160,357 1164,357 1167,360 1171,360 1174,364 1185,364 1189,368 1192,368 1196,371 1196,375 1199,375 1206,382 1214,382 1217,385 1224,385 1231,378 1231,375 1206,350 1203,350 1199,346 1196,346 1192,343 1185,343 1181,339 1174,339 1171,335"/>
+    </TextRegion>
+  </Page>
+</PcGts>

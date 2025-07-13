@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="7f3b38d3-4445-40f9-98d5-130a02c3da40">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:21:13</Created>
+    <LastChange>2023-09-08T03:38:22</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_1103.jpg" imageWidth="3257" imageHeight="4844">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_c6bd1b90-af47-4786-8e64-834974f8aa5e">
+        <RegionRefIndexed index="0" regionRef="region_ecefc6d7-0614-4447-a69e-2d0174c236bc_2"/>
+        <RegionRefIndexed index="1" regionRef="region_df37ee1e-6654-40eb-b418-b936abcb34e7_1"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_ecefc6d7-0614-4447-a69e-2d0174c236bc_2" custom="structure {type:paragraph;}">
+      <Coords points="2681,817 2678,821 2675,821 2669,827 2665,827 2656,836 2656,840 2653,843 2649,843 2646,846 2640,846 2637,849 2637,852 2634,856 2634,865 2630,868 2634,871 2634,878 2637,881 2637,884 2640,887 2640,891 2646,897 2649,897 2653,900 2653,903 2656,906 2656,913 2659,916 2659,922 2704,967 2704,970 2719,986 2719,989 2726,996 2726,999 2729,1002 2729,1005 2739,1015 2739,1018 2745,1018 2754,1008 2758,1008 2761,1011 2764,1011 2767,1008 2767,989 2770,986 2770,980 2767,976 2767,929 2770,926 2770,919 2767,916 2767,903 2764,900 2764,891 2761,887 2761,881 2758,878 2758,871 2754,868 2754,859 2751,856 2751,852 2745,846 2745,843 2723,821 2719,821 2716,817 2710,817 2707,814 2694,814 2691,817"/>
+    </TextRegion>
+    <TextRegion id="region_df37ee1e-6654-40eb-b418-b936abcb34e7_1" custom="structure {type:paragraph;}">
+      <Coords points="2742,3820 2739,3823 2739,3826 2732,3833 2732,3836 2723,3845 2723,3848 2713,3858 2713,3861 2704,3871 2704,3874 2700,3877 2700,3880 2697,3883 2697,3887 2694,3890 2694,3899 2691,3903 2691,3912 2688,3915 2688,3918 2684,3922 2684,3944 2688,3947 2688,3953 2691,3957 2691,3960 2694,3963 2694,3982 2697,3985 2697,3995 2694,3998 2694,4008 2697,4011 2697,4020 2700,4023 2700,4033 2704,4036 2704,4039 2707,4042 2707,4046 2719,4058 2723,4058 2732,4068 2732,4071 2735,4071 2742,4077 2745,4077 2748,4081 2770,4081 2774,4077 2777,4077 2786,4068 2786,4065 2789,4062 2789,4058 2793,4055 2793,4042 2796,4039 2796,4023 2799,4020 2799,4004 2802,4001 2802,3982 2805,3979 2805,3938 2802,3934 2802,3925 2799,3922 2799,3912 2796,3909 2796,3899 2793,3896 2793,3890 2789,3887 2789,3880 2786,3877 2786,3874 2783,3871 2783,3868 2780,3864 2780,3858 2777,3855 2777,3848 2774,3845 2774,3839 2770,3836 2770,3833 2767,3829 2767,3826 2764,3823 2761,3823 2758,3820"/>
+    </TextRegion>
+  </Page>
+</PcGts>

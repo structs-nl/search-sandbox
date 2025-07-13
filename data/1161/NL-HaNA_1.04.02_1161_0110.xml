@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata externalRef="a49ce28b-3d75-4581-a015-69d30538de8d">
+    <Creator>Laypa</Creator>
+    <Created>2023-09-08T02:22:47</Created>
+    <LastChange>2023-09-08T03:38:10</LastChange>
+    <Comment>license: CC0</Comment>
+    <MetadataItem type="processingStep" name="layout-analysis" value="laypa">
+      <Labels>
+        <Label value="228a7d24385cff0e51687c00d0e65a2c2a9703d5" type="githash"/>
+        <Label value="61334eb4-edff-4af5-b036-b5927f35bbcf" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/VMSCBR" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="region-analysis" value="laypa">
+      <Labels>
+        <Label value="0a3442b4-835c-44bc-9115-3fd08263a5dc" type="uuid"/>
+        <Label value="https://hdl.handle.net/10622/DMAS2T" type="laypamodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="htr" value="loghi-htr">
+      <Labels>
+        <Label value="9efb3e0ff4338dc6e07d110ac4d435f27f5b0e16&#10;" type="githash"/>
+        <Label value="3a9bdaa3-493c-483e-bbb2-f51961b8e5a0" type="uuid"/>
+        <Label value="64" type="batch_size"/>
+        <Label value="https://hdl.handle.net/10622/X2JZYY" type="loghihtrmodelremote"/>
+      </Labels>
+    </MetadataItem>
+    <MetadataItem type="processingStep" name="word-splitting" value="loghi-htr-tooling"/>
+    <MetadataItem type="other" name="dataset" value="https://hdl.handle.net/10622/LVXSBW">
+      <Labels>
+        <Label value="VOC transcriptions v2 - GLOBALISE" type="name"/>
+        <Label value="Dataset in pagexml and txt format, including data card." type="description"/>
+        <Label value="https://globalise.huygens.knaw.nl/" type="creator"/>
+        <Label value="https://hdl.handle.net/10622/LVXSBW" type="url"/>
+      </Labels>
+    </MetadataItem>
+  </Metadata>
+  <Page imageFilename="NL-HaNA_1.04.02_1161_0110.jpg" imageWidth="3478" imageHeight="4985">
+    <ReadingOrder>
+      <OrderedGroup id="orderedgroup_094875e1-2c65-43ef-904a-4931d6f34746">
+        <RegionRefIndexed index="0" regionRef="region_8fa380fa-1bab-4048-85dd-a8530312628d_3"/>
+        <RegionRefIndexed index="1" regionRef="region_0f15eca6-b0b8-4b62-9712-3fdd02224e1a_5"/>
+        <RegionRefIndexed index="2" regionRef="region_7f56b7d5-b2a6-4933-b4d1-556dc9ebf5b9_4"/>
+        <RegionRefIndexed index="3" regionRef="region_694a8bf4-7ba9-4c75-9406-25023c022113_6"/>
+        <RegionRefIndexed index="4" regionRef="region_9b5eb93c-c579-4646-a5e8-0700b144f5da_1"/>
+        <RegionRefIndexed index="5" regionRef="region_9ecfa286-3805-4363-9d4c-24e2ecf6bb9f_2"/>
+        <RegionRefIndexed index="6" regionRef="f6144b80-e79e-408a-91b2-52d2cded9d4d"/>
+      </OrderedGroup>
+    </ReadingOrder>
+    <TextRegion id="region_8fa380fa-1bab-4048-85dd-a8530312628d_3" custom="structure {type:page-number;}">
+      <Coords points="666,360 669,363 669,370 673,374 676,374 679,377 696,377 700,374 717,374 720,370 734,370 734,357 727,350 720,350 717,346 683,346 676,353 673,353"/>
+    </TextRegion>
+    <TextRegion id="region_0f15eca6-b0b8-4b62-9712-3fdd02224e1a_5" custom="structure {type:header;}">
+      <Coords points="679,384 679,391 683,394 683,397 689,404 693,404 700,411 703,411 713,421 717,421 720,424 734,424 740,418 740,411 744,407 744,391 740,387 740,380 737,377 737,374 720,374 717,377 700,377 696,380 683,380"/>
+      <TextLine id="line_78355209-5f8b-4b82-acd4-e7725626a976">
+        <Coords points="555,276 838,276 838,423 555,424"/>
+        <Baseline points="628,388 678,392 728,388 766,387"/>
+        <Word id="word_8243d020-08e3-4b01-8baa-6fb0baf894ed">
+          <Coords points="631,353 681,357 725,353 765,352 766,397 729,398 677,402 627,398"/>
+          <TextEquiv>
+            <Unicode>141</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.42112360265313675">
+          <Unicode>141</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="49"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_7f56b7d5-b2a6-4933-b4d1-556dc9ebf5b9_4" custom="structure {type:header;}">
+      <Coords points="2102,465 2106,469 2113,469 2116,472 2126,472 2130,475 2147,475 2150,479 2174,479 2177,482 2181,482 2184,479 2269,479 2272,482 2289,482 2289,469 2293,465 2293,455 2299,448 2296,448 2293,445 2289,445 2286,441 2265,441 2262,438 2252,438 2248,435 2231,435 2228,431 2150,431 2147,435 2130,435 2126,438 2116,438 2109,445 2109,448 2106,452 2106,458 2102,462"/>
+    </TextRegion>
+    <TextRegion id="region_694a8bf4-7ba9-4c75-9406-25023c022113_6" custom="structure {type:header;}">
+      <Coords points="3352,411 3349,407 3349,401 3346,397 3346,391 3342,387 3342,384 3335,377 3335,374 3332,370 3329,370 3322,363 3315,363 3312,360 3281,360 3278,363 3274,363 3264,370 3257,370 3254,374 3247,374 3244,377 3233,377 3230,380 3210,380 3206,384 3179,384 3176,380 3142,380 3138,384 3115,384 3111,380 3098,380 3094,377 3057,377 3053,374 2958,374 2955,370 2938,370 2935,374 2887,374 2884,377 2856,377 2853,380 2836,380 2833,384 2822,384 2819,387 2809,387 2805,391 2789,391 2785,394 2772,394 2768,397 2755,397 2751,401 2731,401 2727,404 2724,404 2721,401 2714,401 2710,397 2707,397 2704,401 2690,401 2680,407 2673,407 2670,411 2663,411 2659,414 2649,414 2646,418 2625,418 2622,421 2605,421 2602,424 2592,424 2588,428 2581,428 2578,431 2568,431 2564,435 2558,435 2554,438 2544,438 2541,441 2537,441 2541,441 2554,455 2554,465 2551,469 2551,472 2547,475 2547,479 2541,486 2534,486 2530,489 2527,489 2530,492 2541,492 2544,496 2551,496 2561,503 2568,503 2571,506 2578,506 2581,509 2588,509 2592,513 2598,513 2602,516 2608,516 2612,520 2619,520 2622,523 2629,523 2632,526 2656,526 2659,530 2687,530 2690,526 2717,526 2721,530 2741,530 2748,537 2751,537 2755,540 2772,540 2775,543 2792,543 2795,547 2839,547 2843,550 2850,550 2853,554 2860,554 2863,557 2867,557 2870,560 2873,560 2884,567 2894,567 2897,570 2914,570 2918,574 2958,574 2962,570 2975,570 2979,567 2999,567 3002,564 3009,564 3019,557 3036,557 3043,550 3047,550 3050,547 3057,547 3060,543 3101,543 3104,547 3132,547 3135,550 3138,550 3145,557 3152,557 3155,560 3159,560 3166,567 3169,567 3172,570 3179,570 3183,574 3230,574 3233,577 3244,577 3247,574 3274,574 3278,577 3281,574 3295,574 3298,570 3301,570 3305,567 3308,567 3315,560 3315,557 3322,547 3322,540 3329,530 3329,523 3342,509 3342,503 3346,499 3346,486 3349,482 3349,448 3352,445"/>
+      <TextLine id="c8e94239-7146-4c15-b2f8-4d3790b96b4d">
+        <Coords points="1958,345 2443,349 2503,370 3265,370 3294,369 3304,359 3319,374 3338,370 3354,385 3391,386 3391,535 3314,608 2643,608 2619,585 2148,585 2140,577 1958,577"/>
+        <Baseline points="2031,493 2081,487 2131,486 2181,486 2231,485 2281,485 2331,485 2381,484 2431,485 2481,486 2531,485 2581,483 2631,481 2681,481 2731,480 2781,479 2831,477 2881,476 2931,479 2981,479 3031,479 3081,483 3131,487 3181,490 3231,495 3281,499 3319,498"/>
+        <Word id="word_62585aed-42ae-409a-8f8e-ec87ee7a800b">
+          <Coords points="2027,458 2077,452 2130,451 2181,451 2230,450 2281,450 2331,450 2380,449 2432,450 2482,451 2490,451 2491,496 2481,496 2431,495 2381,494 2331,495 2281,495 2231,495 2181,496 2131,496 2082,497 2032,503"/>
+          <TextEquiv>
+            <Unicode>Instructie</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_9f9d1fe3-200a-4c98-a22d-8c79b3e4aad2">
+          <Coords points="2536,450 2580,448 2630,446 2681,446 2730,445 2767,444 2768,489 2731,490 2681,491 2631,491 2581,493 2538,495"/>
+          <TextEquiv>
+            <Unicode>vand'</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_b19be266-46ca-43dd-8f26-3391580a7a01">
+          <Coords points="2811,443 2828,442 2859,441 2860,486 2832,487 2814,488"/>
+          <TextEquiv>
+            <Unicode>E</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_b760aa84-a601-4e5e-94ee-3a3eaffe1f9e">
+          <Coords points="2910,441 2936,444 2981,444 3031,444 3046,445 3043,490 3031,489 2981,489 2930,489 2904,485"/>
+          <TextEquiv>
+            <Unicode>van</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_03dcffd3-33f0-41e5-a92c-a59e4c4b6989">
+          <Coords points="3092,449 3134,452 3183,455 3234,460 3284,464 3318,463 3319,508 3280,509 3230,505 3180,500 3130,497 3088,494"/>
+          <TextEquiv>
+            <Unicode>Trumn</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.7793880867884634">
+          <Unicode>Instructie vand' E van Trumn</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="80"/>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="region_9b5eb93c-c579-4646-a5e8-0700b144f5da_1" custom="structure {type:paragraph;}">
+      <Coords points="2293,482 2320,482 2323,486 2503,486 2507,489 2524,489 2527,486 2530,486 2534,482 2541,482 2544,479 2544,475 2547,472 2547,469 2551,465 2551,455 2541,445 2537,445 2534,441 2445,441 2442,438 2364,438 2361,441 2333,441 2330,445 2313,445 2310,448 2303,448 2296,455 2296,465 2293,469"/>
+    </TextRegion>
+    <TextRegion id="region_9ecfa286-3805-4363-9d4c-24e2ecf6bb9f_2" custom="structure {type:catch-word;}">
+      <Coords points="2462,642 2469,642 2473,645 2479,645 2490,655 2517,655 2520,659 2524,659 2530,666 2530,669 2547,669 2554,662 2554,655 2551,652 2551,649 2547,645 2537,645 2534,642 2527,642 2524,645 2517,645 2513,642 2507,642 2503,638 2483,638 2479,642"/>
+    </TextRegion>
+    <TextRegion id="f6144b80-e79e-408a-91b2-52d2cded9d4d">
+      <Coords points="2278,662 2651,662 2651,702 2278,702"/>
+      <TextLine id="fcad4816-c14c-40f0-9151-46cc7912a0f3">
+        <Coords points="2205,573 2721,573 2721,721 2205,721"/>
+        <Baseline points="2278,687 2328,690 2378,683 2428,678 2478,677 2528,678 2578,680 2628,681 2649,685"/>
+        <Word id="word_0c6eed4f-04fc-40c9-915c-e20350f0e600">
+          <Coords points="2280,652 2330,655 2373,648 2425,643 2463,642 2464,687 2429,688 2379,693 2327,700 2277,697"/>
+          <TextEquiv>
+            <Unicode>No.</Unicode>
+          </TextEquiv>
+        </Word>
+        <Word id="word_f91ed920-bf4f-4b4b-8804-d6699e25ff3b">
+          <Coords points="2546,648 2549,650 2579,645 2629,646 2655,650 2647,695 2628,691 2578,690 2522,686 2519,684"/>
+          <TextEquiv>
+            <Unicode>6.</Unicode>
+          </TextEquiv>
+        </Word>
+        <TextEquiv conf="0.9237828161413566">
+          <Unicode>No. 6.</Unicode>
+        </TextEquiv>
+        <TextStyle xHeight="67"/>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>
