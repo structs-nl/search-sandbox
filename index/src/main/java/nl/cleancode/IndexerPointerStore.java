@@ -135,29 +135,49 @@ class IndexerPointerStore {
         DateTimeFormatter localIso = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
         formatters.add(localIso);	
 
+
+	fconfig.setHierarchical("parents", true);
+	
 	Iterator<JsonNode> iterator = json.elements();
 	
 	while (iterator.hasNext()) {
 
             JsonNode doc = iterator.next();
 
-	    JsonNode uuid = json.at("/uuid");
-	    JsonNode title = json.at("/title");
-	    JsonNode parents = json.at("/parents");
+	    JsonNode uuid = doc.at("/uuid");
+	    JsonNode title = doc.at("/title");
+	    JsonNode parents = doc.at("/parents");
+
+	    System.out.println(uuid.asText());
 
 	    Document luceneDoc = new Document();
 
-	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
-	    
-	    // fconfig.setHierarchical(fieldname, true);
-	    
-	    //luceneDoc.add(new StringField(fieldname, str, Field.Store.NO));
-	    //luceneDoc.add(new FacetField(fieldname, str));
 
-	    updateDoc(luceneDoc, new Term("Uuid", uuid.asText()) );
+	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
+	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
+
+
+	    Iterator<JsonNode> pariter = parents.elements();
+	    LinkedList<String> parpath = new LinkedList<String>();
+
+	    
+	    while (pariter.hasNext()) {
+		JsonNode parent = pariter.next();
+		parpath.add(parent.asText());
+	    }
+
+	    if (! parpath.isEmpty()){
+		String[] path = new String[parpath.size()];
+		path = parpath.toArray(path);
+		luceneDoc.add(new FacetField("parents",path));
+	    }
+	   	    
+	    updateDoc(luceneDoc, new Term("uuid", uuid.asText()) );
 	    
 	}
-      	    
+
+	commit();
+	
 	    // String datetext = node.asText();
 	    //ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
 	    //String encodedDateTime = DateTools.dateToString(Date.from(zonedDateTime.toInstant()),DateTools.Resolution.MILLISECOND);
@@ -168,12 +188,7 @@ class IndexerPointerStore {
 	    //String m = Integer.toString(zonedDateTime.getMonthValue());
 	    //String d = Integer.toString(zonedDateTime.getDayOfMonth());
 	    //luceneDoc.add(new FacetField(fieldname, y, m, d));
-	    
-	    //luceneDoc.add(new StringField(fieldname, str, Field.Store.NO));
-	    //luceneDoc.add(new FacetField(fieldname, str));	    
-	    //luceneDoc.add(new DoublePoint(fieldname, node.asDouble()));
-	    
-            //updateDoc(luceneDoc, new Term("Uuid", uuid.asText()) );
+
     }
 
     public DrillDownQuery getDrillDownQuery(Query query)

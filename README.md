@@ -42,66 +42,25 @@ curl -k -u elastic:R85keXC1+IFBIwu1oiJw https://localhost:9200/_cat/nodes
 
 ## Lucene
 
-
 https://lucene.apache.org/core/4_1_0/facet/org/apache/lucene/facet/doc-files/userguide.html
 
-
-
-
-
-
 docker start -i search-sandbox
-mkdir ./opt/data
+
 cd app/index
 mvn package
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../:../opt/data -index ../transform/output.json
+
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -index ../transform/output.json
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -serve 8080
 
 
-
-
-
+curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query
 
 
 
 **Docker create**
 
 docker build -t search-sandbox-dev-env .
-docker run --name search-sandbox -it -v "./:/app" search-sandbox-dev-env
-
-
-### IndexerPointerStore
-
-Index manager
-FacetIndex
-
-
-
-addIndexField
-
-/Collection
-/StartDate
-/Description
-/Documents/Text
-/Documents/Title
-
-
-IndexFile (uit de indexer)
- - new document
- - index: iterate: loop door de IndexFields
- 
- - hoe ziet de index eruit?
- - documenten direct maken
-
- - hierarchische facetten
- - nested documents
- 
- 
- 
- 
-### FilePointerStore
-
-### PointerServer
-
+docker run --name search-sandbox -p 8080:8080 -it -v "./:/app" search-sandbox-dev-env
 
 ## UI
 

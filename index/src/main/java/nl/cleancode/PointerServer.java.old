@@ -234,7 +234,7 @@ public final class PointerServer {
 
                 Builder querybuilder = new BooleanQuery.Builder();
                 Analyzer analyzer = new StandardAnalyzer();
-                QueryParser parser = new QueryParser("uuid", analyzer);
+                QueryParser parser = new QueryParser("/Documents/*/Text", analyzer);
 
                 JsonNode querynode = json.at("/query");
 
@@ -242,6 +242,55 @@ public final class PointerServer {
                     querybuilder.add(parser.parse(querynode.asText()), BooleanClause.Occur.MUST);
                 } else {
                     querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
+                }
+
+                // TODO: some assumptions about the filter structure. Check them.
+                // Only used for a < & > filter expression
+
+                for (JsonNode filter : json.at("/filters")) {
+                    JsonNode op = filter.get(0);
+                    JsonNode arg1 = filter.get(1);
+                    JsonNode arg2 = filter.get(2);
+
+                    if (op.asText().equals("smallerthan") || op.asText().equals("greaterthan")){
+                                                
+                        LocalDate localDate = LocalDate.parse(arg2.asText(), DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                        ZonedDateTime zonedDateTime = localDate.atStartOfDay(ZoneId.systemDefault());
+                        String encodedString = DateTools.dateToString(Date.from(zonedDateTime.toInstant()), DateTools.Resolution.MILLISECOND);
+
+                        String encodedString_ = null;
+                    
+                        for (JsonNode filter_ : json.at("/filters")) {
+                            JsonNode op_ = filter_.get(0);
+                            JsonNode arg1_ = filter_.get(1);
+                            JsonNode arg2_ = filter_.get(2);
+
+                            // Same field, not the same operator
+                            if (arg1.asText().equals(arg1_.asText()) &&  ! op.asText().equals(op_.asText())) {
+
+                                LocalDate localDate_ = LocalDate.parse(arg2_.asText(), DateTimeFormatter.ofPattern("dd-MM-yyyy"));
+                                ZonedDateTime zonedDateTime_ = localDate_.atStartOfDay(ZoneId.systemDefault());
+                                encodedString_ = DateTools.dateToString(Date.from(zonedDateTime_.toInstant()), DateTools.Resolution.MILLISECOND);
+                                break;
+                            }
+                        }
+
+                        if (op.asText().equals("greaterthan")) {
+                            if (encodedString_ == null)
+                                encodedString_ = DateTools.dateToString(Date.from( ZonedDateTime.now().toInstant()), DateTools.Resolution.MILLISECOND);
+
+                            querybuilder.add(new TermRangeQuery(arg1.asText(), new BytesRef(encodedString), new BytesRef(encodedString_), true, true), BooleanClause.Occur.FILTER);
+                            break;
+                        }
+
+                        if (op.asText().equals("smallerthan")) {
+                            if (encodedString_ == null)
+                                encodedString_ = DateTools.dateToString(new Date(0), DateTools.Resolution.MILLISECOND);
+
+                            querybuilder.add(new TermRangeQuery(arg1.asText(), new BytesRef(encodedString_), new BytesRef(encodedString), true, true), BooleanClause.Occur.FILTER);
+                            break;
+                        }
+                    }
                 }
 
                 Query query = querybuilder.build();
@@ -283,9 +332,9 @@ public final class PointerServer {
                         FacetResult facet = results.get(i);
                         gen.writeObjectFieldStart(facet.dim);
 
-                        //MinMax minmax = minmaxFacets(result.facets, facet, facetpagenode.asInt());
-                        //gen.writeStringField("min", String.join( "/", minmax.min));
-                        //gen.writeStringField("max", String.join( "/", minmax.max));
+                        MinMax minmax = minmaxFacets(result.facets, facet, facetpagenode.asInt());
+                        gen.writeStringField("min", String.join( "/", minmax.min));
+                        gen.writeStringField("max", String.join( "/", minmax.max));
 
                         gen.writeObjectFieldStart("values");
                         for (int j = 0; j < facet.labelValues.length; j++) {
@@ -309,9 +358,10 @@ public final class PointerServer {
                     Document doc = st.searcher.doc(hits[i].doc);
 
                     String uuid = doc.get("uuid");
-		    gen.writeString(uuid);
-		    
+
+		    // TODO: create and write the jsontree
                     // pointerstore.mapper.writeTree(gen, jsontree);
+                    
                 }
                 gen.writeEndArray();
             }
@@ -372,7 +422,7 @@ public final class PointerServer {
                 if (httpRequest.uri().startsWith("/query")) {
                     ByteBuf data = httpRequest.content();
                     JsonNode query = pointerstore.mapper.readTree((data.toString(StandardCharsets.UTF_8)));
-		    search(query, ctx, httpRequest);		    
+                    search(query, ctx, httpRequest);
                 }
             }
         }
