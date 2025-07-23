@@ -226,7 +226,7 @@ public final class PointerServer {
                 searchstates.put(queryid, searchstate);
 
                 gen.writeStringField("qid", queryid);
-                gen.writeStringField("hits", Long.toString(docs.totalHits));
+                gen.writeStringField("hits", Long.toString(docs.totalHits.value));
 
             } else {
 
@@ -274,7 +274,7 @@ public final class PointerServer {
                     JsonNode facetpagenode = json.at("/facetpagesize");
 
                     gen.writeStringField("qid", queryuuid.toString());
-                    gen.writeNumberField("hits", result.hits.totalHits);
+                    gen.writeNumberField("hits", result.hits.totalHits.value);
                     gen.writeObjectFieldStart("facets");
 
 		    // TODO upgrade and use getAllChildren

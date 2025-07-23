@@ -5,9 +5,7 @@
     <artifactId>jPointerStore</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>   
     <dependencies>
 
@@ -56,31 +54,31 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>7.7.1</version>
+	    <version>9.12.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
-            <version>7.7.1</version>
+	    <version>9.12.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
-            <version>7.7.1</version>
+            <artifactId>lucene-analysis-common</artifactId>
+	    <version>9.12.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-facet</artifactId>
-            <version>7.7.1</version>
+	    <version>9.12.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queries</artifactId>
-            <version>7.7.1</version>
+	    <version>9.12.2</version>
         </dependency>
 
         <dependency>
