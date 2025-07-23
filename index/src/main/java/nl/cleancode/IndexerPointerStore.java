@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import org.apache.lucene.document.DateTools;
@@ -170,6 +171,7 @@ class IndexerPointerStore {
 		String[] path = new String[parpath.size()];
 		path = parpath.toArray(path);
 		luceneDoc.add(new FacetField("parents",path));
+		System.out.println(Arrays.toString(path));
 	    }
 	   	    
 	    updateDoc(luceneDoc, new Term("uuid", uuid.asText()) );

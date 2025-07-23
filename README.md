@@ -53,9 +53,56 @@ java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -index ..
 java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -serve 8080
 
 
-curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query
+curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
 
 
+Kloppen de counts?
+Is het mogelijk om alle onderliggende objecten te tellen?
+Willen we alle objecten toevoegen of alleen de files?
+
+
+
+
+        "8b238f43-e571-11bf-e053-09f0900a4541": 12,
+        "8b238f3e-c8cd-11bf-e053-09f0900a4541": 11,
+        "857327d4-045c-5cc5-e053-09f0900a2b1a": 10,
+        "8b238f43-e583-11bf-e053-09f0900a4541": 8,
+        "8b238f43-ea3b-11bf-e053-09f0900a4541": 6,
+        "8b238f43-e7cb-11bf-e053-09f0900a4541": 6,
+        "8b238f43-e559-11bf-e053-09f0900a4541": 6,
+        "8b238f43-de8e-11bf-e053-09f0900a4541": 4
+
+
+	{
+		"type": "series",
+		"uuid": "8b238f43-de8e-11bf-e053-09f0900a4541",
+		"title": "Kamer Enkhuizen",
+		"parents": []
+	},
+
+	{
+		"type": "subseries",
+		"uuid": "8b238f43-de9b-11bf-e053-09f0900a4541",
+		"title": "STUKKEN BETREFFENDE HET FINANCIEEL BEHEER",
+		"parents": [
+			"8b238f43-de8e-11bf-e053-09f0900a4541"
+		]
+	},
+
+	{
+		"type": "otherlevel",
+		"uuid": "8b238f43-de9c-11bf-e053-09f0900a4541",
+		"title": "Registers bevattende akten van transport van aandelen  van de kamer Enkhuizen",
+		"parents": [
+			"8b238f43-de8e-11bf-e053-09f0900a4541",
+			"8b238f43-de9b-11bf-e053-09f0900a4541"
+		]
+	},
+	
+	
+	
+8b238f43-de9c-11bf-e053-09f0900a4541
+[8b238f43-de8e-11bf-e053-09f0900a4541, 8b238f43-de9b-11bf-e053-09f0900a4541]
 
 **Docker create**
 

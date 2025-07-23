@@ -272,29 +272,43 @@ public final class PointerServer {
                     searchstates.put(queryuuid.toString(), new SearchState(dq, hits[hits.length - 1]));
 
                     JsonNode facetpagenode = json.at("/facetpagesize");
-                    List<FacetResult> results = new ArrayList<>();
-                    results = result.facets.getAllDims(facetpagenode.asInt());
 
                     gen.writeStringField("qid", queryuuid.toString());
                     gen.writeNumberField("hits", result.hits.totalHits);
                     gen.writeObjectFieldStart("facets");
 
-                    for (int i = 0; i < results.size(); i++) {
-                        FacetResult facet = results.get(i);
-                        gen.writeObjectFieldStart(facet.dim);
+		    // TODO upgrade and use getAllChildren
+		    FacetResult parents = result.facets.getTopChildren(20000, "parents");
 
-                        //MinMax minmax = minmaxFacets(result.facets, facet, facetpagenode.asInt());
-                        //gen.writeStringField("min", String.join( "/", minmax.min));
-                        //gen.writeStringField("max", String.join( "/", minmax.max));
+		    gen.writeObjectFieldStart("parents");
+		    gen.writeObjectFieldStart("values");
+		    for (int j = 0; j < parents.labelValues.length; j++) {
+			LabelAndValue lv = parents.labelValues[j];
+			gen.writeNumberField(lv.label, lv.value.intValue() );
+		    }
+		   
+		    gen.writeEndObject();
+		    gen.writeEndObject();
+		    
+		    // List<FacetResult> results = new ArrayList<>();
+		    //  results = result.facets.getAllDims(facetpagenode.asInt());
+		    // for (int i = 0; i < results.size(); i++) {
+		    //     FacetResult facet = results.get(i);
+		    //     gen.writeObjectFieldStart(facet.dim);
 
-                        gen.writeObjectFieldStart("values");
-                        for (int j = 0; j < facet.labelValues.length; j++) {
-                            LabelAndValue lv = facet.labelValues[j];
-                            gen.writeNumberField(lv.label, lv.value.intValue() );
-                        }
-                        gen.writeEndObject();
-                        gen.writeEndObject();
-                    }
+		    //     MinMax minmax = minmaxFacets(result.facets, facet, facetpagenode.asInt());
+		    //gen.writeStringField("min", String.join( "/", minmax.min));
+		    //gen.writeStringField("max", String.join( "/", minmax.max));
+
+                    //    gen.writeObjectFieldStart("values");
+                    //    for (int j = 0; j < facet.labelValues.length; j++) {
+                    //        LabelAndValue lv = facet.labelValues[j];
+                    //        gen.writeNumberField(lv.label, lv.value.intValue() );
+                    //    }
+                    //    gen.writeEndObject();
+                    //    gen.writeEndObject();
+                    //}
+		 
                     gen.writeEndObject();
                 }
             }
