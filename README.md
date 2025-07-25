@@ -44,6 +44,8 @@ curl -k -u elastic:R85keXC1+IFBIwu1oiJw https://localhost:9200/_cat/nodes
 
 https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-summary.html
 
+https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
+
 
 docker start -i search-sandbox
 

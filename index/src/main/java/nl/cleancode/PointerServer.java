@@ -94,16 +94,19 @@ import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.search.SearcherManager;
 import org.apache.lucene.search.SearcherFactory;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.index.Term;
 
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways;
 import org.apache.lucene.search.IndexSearcher;
 
+import org.apache.lucene.index.IndexReader;
+
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.BooleanQuery.*;
-import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways.DrillSidewaysResult;
 import org.apache.lucene.facet.FacetsCollector;
@@ -115,6 +118,11 @@ import org.apache.lucene.facet.FacetsCollectorManager.FacetsResult;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
+
+
+import org.apache.lucene.index.MultiTerms;
+import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.util.BytesRef;
 
 import org.apache.lucene.util.IOUtils;
 
@@ -302,26 +310,26 @@ public final class PointerServer {
 
                     gen.writeStringField("qid", queryuuid.toString());
                     gen.writeNumberField("hits", result.topDocs().totalHits.value());
-                    gen.writeObjectFieldStart("facets");
+                    gen.writeArrayFieldStart("facets");
 
 		    var facets = new FastTaxonomyFacetCounts(taxoReader, pointerstore.indexer.fconfig, result.facetsCollector());
 
 		    var parents = facets.getAllChildren("parents");
-		    
-		    gen.writeObjectFieldStart("parents");
-		    gen.writeObjectFieldStart("values");
-		    for (int j = 0; j < parents.labelValues.length; j++) {
-			var lv = parents.labelValues[j];
 
-			// TODO: lookup the documents of the facets: label, ect
+		    for (var lv : parents.labelValues) {
+			gen.writeStartObject();
+			gen.writeStringField("field", "parents");
+			gen.writeStringField("uuid", lv.label);
+			gen.writeNumberField("count", lv.value.intValue() );
 			
-
-			
-			gen.writeNumberField(lv.label, lv.value.intValue() );
+			var res = searcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
+			for (var hit : res.scoreDocs) {
+			    var doc = storedFields.document(hit.doc);
+			    var title = doc.get("title");
+			    gen.writeStringField("title", title);
+			}
+			gen.writeEndObject();
 		    }
-		   
-		    gen.writeEndObject();
-		    gen.writeEndObject();
 		    
 		    // List<FacetResult> results = new ArrayList<>();
 		    //  results = result.facets.getAllDims(facetpagenode.asInt());
@@ -342,22 +350,21 @@ public final class PointerServer {
                     //    gen.writeEndObject();
                     //}
 		 
-                    gen.writeEndObject();
+                    gen.writeEndArray();
                 }
             }
 
             if (hits.length > 0) {
-                // output docs for new or existing query
-                
                 gen.writeArrayFieldStart("docs");
-
-                int end = (int)Math.min(hits.length, pagesize);
-                for (int i = 0; i < end; i++) {
-		    var doc = storedFields.document(hits[i].doc);
-                    var uuid = doc.get("uuid");
-		    gen.writeString(uuid);
-                }
-                gen.writeEndArray();
+		
+		for (var hit : hits) {
+		    var doc = storedFields.document(hit.doc);
+		    var title = doc.get("title");
+		    var uuid = doc.get("uuid");
+					
+		    gen.writeString(title);
+		}
+		gen.writeEndArray();
             }
 
             gen.writeEndObject();
