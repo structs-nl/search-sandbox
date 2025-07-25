@@ -11,6 +11,7 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 
 import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
 import org.apache.lucene.facet.taxonomy.TaxonomyReader;
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways;
@@ -28,11 +29,6 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.search.SearcherManager;
-import org.apache.lucene.search.SearcherFactory;
-import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager;
-import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy;
-
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -66,23 +62,19 @@ import java.nio.file.Path;
 
 class IndexerPointerStore {
 
-    protected Directory dir;
-    protected Directory taxdir;
-    protected Path filespath;
+    public Directory dir;
+    public Directory taxdir;
+    public FacetsConfig fconfig;
 
     private IndexWriterConfig iwc;
     private IndexWriter iw;
     private DirectoryTaxonomyWriter dtw;
-    private FacetsConfig fconfig;
 
     private LinkedList<DateTimeFormatter> formatters;
-
-    public SearcherTaxonomyManager searcherManager;
-
+    
     jPointerStore pointerstore;
 
     public static final org.apache.lucene.document.FieldType TextFieldType = new org.apache.lucene.document.FieldType();
-
 
     static {
         TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
@@ -95,28 +87,18 @@ class IndexerPointerStore {
 
     IndexerPointerStore(jPointerStore jpointerstore, String basepath) throws IOException {
         pointerstore = jpointerstore;
+	
         fconfig = new FacetsConfig();
-        filespath = Paths.get(basepath + "/files");
+
+
+	fconfig.setHierarchical("parents", true);
+	fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
+	fconfig.setRequireDimCount("parents", true);
+	
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
-    }
 
-    public void openReader()
-    throws IOException, InterruptedException
-    {
-        //ir = DirectoryReader.open(dir);
-        //taxoReader = new DirectoryTaxonomyReader(taxdir);
-        //indexSearcherManager = new SearcherManager(iw, new SearcherFactory());
 
-        if (iw == null || dtw == null)
-            openWriter();
-
-        searcherManager = new SearcherTaxonomyManager(iw, new SearcherFactory(), dtw);        
-    }
-
-    public void openWriter()
-    throws IOException, InterruptedException
-    {
         Analyzer analyzer = new StandardAnalyzer();
         iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
@@ -124,6 +106,7 @@ class IndexerPointerStore {
 
         iw = new IndexWriter(dir, iwc);
         dtw = new DirectoryTaxonomyWriter(taxdir);
+	
     }
 
 
@@ -137,7 +120,6 @@ class IndexerPointerStore {
         formatters.add(localIso);	
 
 
-	fconfig.setHierarchical("parents", true);
 	
 	Iterator<JsonNode> iterator = json.elements();
 	
@@ -157,7 +139,6 @@ class IndexerPointerStore {
 	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
 	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
 
-
 	    Iterator<JsonNode> pariter = parents.elements();
 	    LinkedList<String> parpath = new LinkedList<String>();
 
@@ -169,66 +150,27 @@ class IndexerPointerStore {
 
 	    if (! parpath.isEmpty()){
 		String[] path = new String[parpath.size()];
-		path = parpath.toArray(path);
+		path = parpath.toArray(path);		
 		luceneDoc.add(new FacetField("parents",path));
-		System.out.println(Arrays.toString(path));
 	    }
 	   	    
-	    updateDoc(luceneDoc, new Term("uuid", uuid.asText()) );
+	    updateDoc(fconfig.build(dtw, luceneDoc), new Term("uuid", uuid.asText()) );
 	    
 	}
 
 	commit();
 	
-	    // String datetext = node.asText();
-	    //ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
-	    //String encodedDateTime = DateTools.dateToString(Date.from(zonedDateTime.toInstant()),DateTools.Resolution.MILLISECOND);
+	// String datetext = node.asText();
+	//ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
+	//String encodedDateTime = DateTools.dateToString(Date.from(zonedDateTime.toInstant()),DateTools.Resolution.MILLISECOND);
 
-	    //luceneDoc.add(new StringField(fieldname, encodedDateTime, Field.Store.NO));
+	//luceneDoc.add(new StringField(fieldname, encodedDateTime, Field.Store.NO));
 
-	    //String y = Integer.toString(zonedDateTime.getYear());
-	    //String m = Integer.toString(zonedDateTime.getMonthValue());
-	    //String d = Integer.toString(zonedDateTime.getDayOfMonth());
-	    //luceneDoc.add(new FacetField(fieldname, y, m, d));
+	//String y = Integer.toString(zonedDateTime.getYear());
+	//String m = Integer.toString(zonedDateTime.getMonthValue());
+	//String d = Integer.toString(zonedDateTime.getDayOfMonth());
+	//luceneDoc.add(new FacetField(fieldname, y, m, d));
 
-    }
-
-    public DrillDownQuery getDrillDownQuery(Query query)
-    {
-         return new DrillDownQuery(fconfig, query);
-    }
-
-    public DrillSideways getDrillSideways(SearcherAndTaxonomy st)
-    throws IOException
-    {
-        return new DrillSideways(st.searcher, fconfig, st.taxonomyReader);
-    }
-
-    public SearcherAndTaxonomy getIndexSearcher()
-    throws IOException, InterruptedException
-    {
-        if (searcherManager == null)
-            openReader();
-
-        return searcherManager.acquire();
-    }
-
-    public void releaseIndexSearcher(SearcherAndTaxonomy searcher)
-    {
-        try {
-            searcherManager.release(searcher);
-        } catch(Exception e) {
-            System.out.println(e.toString());
-        }
-    }
-
-    public Boolean refreshIndexSearcher()
-    throws IOException, InterruptedException
-    {
-        if (searcherManager == null)
-            openReader();
-
-        return searcherManager.maybeRefresh();
     }
 
     public void commit()
@@ -243,18 +185,12 @@ class IndexerPointerStore {
     public void updateDoc(Document doc, Term idterm)
     throws IOException, InterruptedException
     {
-        if (iw == null)
-            openWriter();
-
         iw.updateDocument(idterm, fconfig.build(dtw, doc));
     }
 
     public void deleteDoc(Term idterm)
     throws IOException, InterruptedException
     {       
-        if (iw == null)
-            openWriter();
-        
         iw.deleteDocuments(idterm);
     }
     public void close() throws IOException {

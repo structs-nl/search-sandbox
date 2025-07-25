@@ -5,6 +5,8 @@
     <artifactId>jPointerStore</artifactId>
     <version>1.0-SNAPSHOT</version>
     <properties>
+          <maven.compiler.source>21</maven.compiler.source>
+	  <maven.compiler.target>21</maven.compiler.target>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>   
     <dependencies>
@@ -54,31 +56,31 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-	    <version>9.12.2</version>
+	    <version>10.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queryparser</artifactId>
-	    <version>9.12.2</version>
+	    <version>10.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-analysis-common</artifactId>
-	    <version>9.12.2</version>
+	    <version>10.2.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-facet</artifactId>
-	    <version>9.12.2</version>
+	    <version>10.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-queries</artifactId>
-	    <version>9.12.2</version>
+	    <version>10.2.2</version>
         </dependency>
 
         <dependency>
@@ -101,11 +103,6 @@
             </resource>
         </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>

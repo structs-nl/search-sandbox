@@ -9,7 +9,7 @@ De focus zal in eerste instantie liggen op hierarchische facetten, welke voor tw
 
 In de sandbox hebben we nog geen beschikking over de definitieve data,
 dus moeten we werken met een subset die wel beschikbaar is en helpt bij de functionele vragen.
-
+	
 # Werk te doen
 ## Opzet ZIT beschrijven
 
@@ -42,35 +42,15 @@ curl -k -u elastic:R85keXC1+IFBIwu1oiJw https://localhost:9200/_cat/nodes
 
 ## Lucene
 
-https://lucene.apache.org/core/4_1_0/facet/org/apache/lucene/facet/doc-files/userguide.html
+https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-summary.html
+
 
 docker start -i search-sandbox
-
-cd app/index
-mvn package
 
 java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -index ../transform/output.json
 java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -serve 8080
 
-
 curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
-
-
-Kloppen de counts?
-Is het mogelijk om alle onderliggende objecten te tellen?
-Willen we alle objecten toevoegen of alleen de files?
-
-
-
-
-        "8b238f43-e571-11bf-e053-09f0900a4541": 12,
-        "8b238f3e-c8cd-11bf-e053-09f0900a4541": 11,
-        "857327d4-045c-5cc5-e053-09f0900a2b1a": 10,
-        "8b238f43-e583-11bf-e053-09f0900a4541": 8,
-        "8b238f43-ea3b-11bf-e053-09f0900a4541": 6,
-        "8b238f43-e7cb-11bf-e053-09f0900a4541": 6,
-        "8b238f43-e559-11bf-e053-09f0900a4541": 6,
-        "8b238f43-de8e-11bf-e053-09f0900a4541": 4
 
 
 	{
@@ -100,10 +80,6 @@ Willen we alle objecten toevoegen of alleen de files?
 	},
 	
 	
-	
-8b238f43-de9c-11bf-e053-09f0900a4541
-[8b238f43-de8e-11bf-e053-09f0900a4541, 8b238f43-de9b-11bf-e053-09f0900a4541]
-
 **Docker create**
 
 docker build -t search-sandbox-dev-env .

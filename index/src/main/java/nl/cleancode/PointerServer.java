@@ -84,11 +84,20 @@ import org.apache.lucene.facet.Facets;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
+
 import org.apache.lucene.facet.LabelAndValue;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
-import org.apache.lucene.facet.taxonomy.SearcherTaxonomyManager.SearcherAndTaxonomy;
+import org.apache.lucene.index.DirectoryReader;
+import org.apache.lucene.facet.taxonomy.TaxonomyReader;
+import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
+import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.search.SearcherManager;
+import org.apache.lucene.search.SearcherFactory;
 
+import org.apache.lucene.facet.DrillDownQuery;
+import org.apache.lucene.facet.DrillSideways;
+import org.apache.lucene.search.IndexSearcher;
 
 import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.BooleanQuery;
@@ -97,10 +106,20 @@ import org.apache.lucene.search.BooleanQuery.*;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways.DrillSidewaysResult;
+import org.apache.lucene.facet.FacetsCollector;
+import org.apache.lucene.facet.FacetsCollectorManager;
+import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
+
+import org.apache.lucene.facet.FacetsCollectorManager.FacetsResult;
+
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
-//import org.apache.lucene.search.TotalHits;
+
+import org.apache.lucene.util.IOUtils;
+
+import org.apache.lucene.index.StoredFields;
+
 
 import org.apache.lucene.search.ScoreDoc;
 
@@ -120,11 +139,11 @@ public final class PointerServer {
     {
         pointerstore = jpointerstore;
 
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        var bossGroup = new NioEventLoopGroup(1);
+        var workerGroup = new NioEventLoopGroup();
         
         try {
-            ServerBootstrap b = new ServerBootstrap();
+            var b = new ServerBootstrap();
 
             b.option(ChannelOption.SO_BACKLOG, 1024);
             b.group(bossGroup, workerGroup)
@@ -132,12 +151,12 @@ public final class PointerServer {
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .childHandler(new HTTPInitializer());
 
-            Channel ch = b.bind(PORT).sync().channel();
+            var ch = b.bind(PORT).sync().channel();
 
             ch.closeFuture().sync();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        } finally {
+        } finally { 
             System.out.println("Stop!");
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
@@ -157,7 +176,7 @@ public final class PointerServer {
         String max = null;
         
         for (int j = 0; j < facet.labelValues.length; j++) {
-            LabelAndValue lv = facet.labelValues[j];
+            var lv = facet.labelValues[j];
 
             if (max == null || max.compareTo(lv.label) < 0)
                 max = lv.label;
@@ -176,13 +195,13 @@ public final class PointerServer {
         minmax.min = minpath;
         minmax.max = maxpath; 
 
-        FacetResult minfacets = facets.getTopChildren(pagesize, facet.dim, minpath);
+        var minfacets = facets.getTopChildren(pagesize, facet.dim, minpath);
         if (minfacets != null){
             MinMax minMinMax = minmaxFacets(facets, minfacets, pagesize, minpath);
             minmax.min = minMinMax.min;
         }
 
-        FacetResult maxfacets = facets.getTopChildren(pagesize, facet.dim, maxpath);
+        var maxfacets = facets.getTopChildren(pagesize, facet.dim, maxpath);
         if (maxfacets != null){
             MinMax maxMinMax = minmaxFacets(facets, maxfacets, pagesize, maxpath);
             minmax.max = maxMinMax.max;
@@ -193,20 +212,25 @@ public final class PointerServer {
     protected void search(JsonNode json, ChannelHandlerContext ctx, HttpRequest httpRequest)
     throws IOException, InterruptedException
     {
-        SearcherAndTaxonomy st = pointerstore.indexer.getIndexSearcher();
+
+	var indexReader = DirectoryReader.open(pointerstore.indexer.dir);
+	var taxoReader = new DirectoryTaxonomyReader(pointerstore.indexer.taxdir);
+	var searcher = new IndexSearcher(indexReader);
+	var storedFields = searcher.storedFields();
+
         try {
 
-            JsonNode qidnode = json.at("/qid");
-            JsonNode pagenode = json.at("/pagesize");
+            var qidnode = json.at("/qid");
+            var pagenode = json.at("/pagesize");
             // TODO: must always be set
 
-            int pagesize = pagenode.asInt();
+            var pagesize = pagenode.asInt();
 
             ScoreDoc[] hits = null;
             
-            ByteBuf bodybuf = Unpooled.directBuffer(8);
-            ByteBufOutputStream byteoutput = new ByteBufOutputStream(bodybuf);
-            JsonGenerator gen = pointerstore.mapper.getFactory().createGenerator((OutputStream)byteoutput);      
+            var bodybuf = Unpooled.directBuffer(8);
+            var byteoutput = new ByteBufOutputStream(bodybuf);
+            var gen = pointerstore.mapper.getFactory().createGenerator((OutputStream)byteoutput);      
             
             gen.writeStartObject();
 
@@ -215,10 +239,10 @@ public final class PointerServer {
                 // Continue a stored query
                 // TODO: clear the queries afterwards
 
-                String queryid = qidnode.asText();
+                var queryid = qidnode.asText();
                 SearchState searchstate = searchstates.get(queryid);
 
-                TopDocs docs = st.searcher.searchAfter(searchstate.scoredoc, searchstate.query, pagesize);
+                TopDocs docs = searcher.searchAfter(searchstate.scoredoc, searchstate.query, pagesize);
 
                 hits = docs.scoreDocs;
 
@@ -226,17 +250,17 @@ public final class PointerServer {
                 searchstates.put(queryid, searchstate);
 
                 gen.writeStringField("qid", queryid);
-                gen.writeStringField("hits", Long.toString(docs.totalHits.value));
+                gen.writeStringField("hits", Long.toString(docs.totalHits.value()));
 
             } else {
 
                 // Create a new query with facets
 
-                Builder querybuilder = new BooleanQuery.Builder();
-                Analyzer analyzer = new StandardAnalyzer();
-                QueryParser parser = new QueryParser("uuid", analyzer);
+                var querybuilder = new BooleanQuery.Builder();
+                var analyzer = new StandardAnalyzer();
+                var parser = new QueryParser("uuid", analyzer);
 
-                JsonNode querynode = json.at("/query");
+                var querynode = json.at("/query");
 
                 if (! querynode.isMissingNode() && ! querynode.isNull() && !querynode.asText().isEmpty() ) {
                     querybuilder.add(parser.parse(querynode.asText()), BooleanClause.Occur.MUST);
@@ -244,46 +268,55 @@ public final class PointerServer {
                     querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
                 }
 
-                Query query = querybuilder.build();
+                var query = querybuilder.build();
+		
+                var dq = new DrillDownQuery(pointerstore.indexer.fconfig, query);
 
-                DrillDownQuery dq = pointerstore.indexer.getDrillDownQuery(query);
-
-                for (JsonNode filter : json.at("/facetfilters")) {
-                    JsonNode op = filter.get(0);
-                    JsonNode arg1 = filter.get(1);
-                    JsonNode arg2 = filter.get(2);
+                for (var filter : json.at("/facetfilters")) {
+                    var op = filter.get(0);
+                    var arg1 = filter.get(1);
+                    var arg2 = filter.get(2);
 
                     if (op.asText().equals("is")){
                         dq.add(arg1.asText(), arg2.asText());
                     }
                 }
 
-                DrillSidewaysResult result = pointerstore.indexer.getDrillSideways(st).search(dq, pagesize);
+		//var result = new DrillSideways(searcher, pointerstore.indexer.fconfig, taxoReader).search(dq, pagesize);
+		var fcm = new FacetsCollectorManager();
+		var result = FacetsCollectorManager.search(searcher, dq, pagesize, fcm);
 
-                hits = result.hits.scoreDocs;
-
+                //hits = result.hits.scoreDocs;
+		hits = result.topDocs().scoreDocs;
+		
                 if (hits.length == 0) {
                     // no results
                     gen.writeNumberField("hits", 0);
                 } else {
                     // results; store query and gather facets
 
-                    UUID queryuuid = Generators.timeBasedGenerator().generate();
+                    var queryuuid = Generators.timeBasedGenerator().generate();
                     searchstates.put(queryuuid.toString(), new SearchState(dq, hits[hits.length - 1]));
 
-                    JsonNode facetpagenode = json.at("/facetpagesize");
+                    var facetpagenode = json.at("/facetpagesize");
 
                     gen.writeStringField("qid", queryuuid.toString());
-                    gen.writeNumberField("hits", result.hits.totalHits.value);
+                    gen.writeNumberField("hits", result.topDocs().totalHits.value());
                     gen.writeObjectFieldStart("facets");
 
-		    // TODO upgrade and use getAllChildren
-		    FacetResult parents = result.facets.getTopChildren(20000, "parents");
+		    var facets = new FastTaxonomyFacetCounts(taxoReader, pointerstore.indexer.fconfig, result.facetsCollector());
 
+		    var parents = facets.getAllChildren("parents");
+		    
 		    gen.writeObjectFieldStart("parents");
 		    gen.writeObjectFieldStart("values");
 		    for (int j = 0; j < parents.labelValues.length; j++) {
-			LabelAndValue lv = parents.labelValues[j];
+			var lv = parents.labelValues[j];
+
+			// TODO: lookup the documents of the facets: label, ect
+			
+
+			
 			gen.writeNumberField(lv.label, lv.value.intValue() );
 		    }
 		   
@@ -320,12 +353,9 @@ public final class PointerServer {
 
                 int end = (int)Math.min(hits.length, pagesize);
                 for (int i = 0; i < end; i++) {
-                    Document doc = st.searcher.doc(hits[i].doc);
-
-                    String uuid = doc.get("uuid");
+		    var doc = storedFields.document(hits[i].doc);
+                    var uuid = doc.get("uuid");
 		    gen.writeString(uuid);
-		    
-                    // pointerstore.mapper.writeTree(gen, jsontree);
                 }
                 gen.writeEndArray();
             }
@@ -333,7 +363,7 @@ public final class PointerServer {
             gen.writeEndObject();
             gen.close();
 
-            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+            var response = new DefaultHttpResponse(HTTP_1_1, OK);
             response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
             response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
             response.headers().set(HttpHeaderNames.CONTENT_LENGTH, bodybuf.readableBytes());
@@ -346,7 +376,7 @@ public final class PointerServer {
 
             byteoutput.close();
 
-            ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
             if (!HttpUtil.isKeepAlive(httpRequest))
                 lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
@@ -354,9 +384,8 @@ public final class PointerServer {
             System.out.println(e.toString());
             System.out.println(Arrays.toString(e.getStackTrace()));
         } finally {
-            pointerstore.indexer.releaseIndexSearcher(st);
-            st = null;
-        }
+	    IOUtils.close(indexReader, taxoReader);
+	}
     }
     
     protected class SearchState {

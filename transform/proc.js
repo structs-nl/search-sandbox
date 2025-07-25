@@ -13,12 +13,11 @@ const dsc = ead.children[0].
       children.filter( (x => x["name"] == "metadata"))[0].
       children.filter( (x => x["name"] == "ead"))[0].
       children.filter( (x => x["name"] == "archdesc"))[0].
-      children.filter( (x => x["name"] == "dsc"))[0];
+      children.filter( (x => x["name"] == "dsc"))[0]
 
 const proc = (c, parents = []) => {
 
     const level = c.attributes["level"];
-    
     const attrs = c.children.filter( (x => x["name"] == "did"))[0]
           ?.children.filter( (x => x["name"] == "unittitle" || x["name"] == "unitid" ))
 	  .map (x => (
@@ -26,12 +25,12 @@ const proc = (c, parents = []) => {
 		 "label": x.children[0].text,
 		 "attr": x.attributes
 	      }
-	  ));
+	  ))
     
-    const uuid = attrs?.filter(x => x["name"] == "unitid" && x.attr["type"] == "urn:uuid")?.[0].label;
-    const title = attrs?.filter(x => x["name"] == "unittitle")?.[0].label;
+    const uuid = attrs?.filter(x => x["name"] == "unitid" && x.attr["type"] == "urn:uuid")?.[0].label
+    const title = attrs?.filter(x => x["name"] == "unittitle")?.[0].label
     
-    const doc = [{"type": level, "uuid": uuid, "title": title, "parents": parents}];
+    const doc = [{"type": level, "uuid": uuid, "title": title, "parents": parents}]
     
     const newparents = parents.slice(0);
     if (uuid)
@@ -42,7 +41,6 @@ const proc = (c, parents = []) => {
     
     return doc.concat(childs);
 }
-
 
 const list = proc(dsc);
 
