@@ -219,14 +219,18 @@ public final class PointerServer {
 
                 var querybuilder = new BooleanQuery.Builder();
                 var analyzer = new StandardAnalyzer();
-                var parser = new QueryParser("uuid", analyzer);
+                var parser = new QueryParser("title", analyzer);
 
                 var querynode = json.at("/query");
 
+		// We are only concerned with file types. Should be changed to a filter excluding series and subseries
+		querybuilder.add(new TermQuery(new Term("type", "file")) ,BooleanClause.Occur.FILTER);	       
+
                 if (! querynode.isMissingNode() && ! querynode.isNull() && !querynode.asText().isEmpty() ) {
                     querybuilder.add(parser.parse(querynode.asText()), BooleanClause.Occur.MUST);
-                } else {
-                    querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
+
+		//} else {
+                //    querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
                 }
 
                 var query = querybuilder.build();
@@ -239,7 +243,7 @@ public final class PointerServer {
                     var arg2 = filter.get(2);
 
                     if (op.asText().equals("is")){
-                        dq.add(arg1.asText(), arg2.asText());
+                        dq.add(arg1.asText(), arg2.asText());	
                     }
                 }
 
@@ -274,7 +278,8 @@ public final class PointerServer {
 			gen.writeStringField("field", "parents");
 			gen.writeStringField("uuid", lv.label);
 			gen.writeNumberField("count", lv.value.intValue() );
-			
+
+			// TODO: is there a faster way of doing this?
 			var res = searcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
 			for (var hit : res.scoreDocs) {
 			    var doc = storedFields.document(hit.doc);
@@ -313,9 +318,9 @@ public final class PointerServer {
 		for (var hit : hits) {
 		    var doc = storedFields.document(hit.doc);
 		    var title = doc.get("title");
-		    var uuid = doc.get("uuid");
+		    var type = doc.get("type");
 					
-		    gen.writeString(title);
+		    gen.writeString(type + ": " + title);
 		}
 		gen.writeEndArray();
             }

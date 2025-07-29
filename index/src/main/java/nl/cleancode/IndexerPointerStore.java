@@ -128,6 +128,8 @@ class IndexerPointerStore {
 
 	    JsonNode uuid = doc.at("/uuid");
 	    JsonNode title = doc.at("/title");
+	    JsonNode type = doc.at("/type");
+
 	    JsonNode parents = doc.at("/parents");
 
 	    System.out.println(uuid.asText());
@@ -135,6 +137,7 @@ class IndexerPointerStore {
 	    Document luceneDoc = new Document();
 
 	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
+	    luceneDoc.add(new StringField("type",type.asText(), Field.Store.YES));
 	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
 
 	    Iterator<JsonNode> pariter = parents.elements();
