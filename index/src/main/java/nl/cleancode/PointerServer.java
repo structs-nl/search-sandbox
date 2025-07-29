@@ -26,19 +26,10 @@ import java.nio.file.Paths;
 import java.io.OutputStream;
 
 import java.util.HashMap;
-import java.util.UUID;
-import java.util.Base64;
-
 import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.core.JsonGenerator;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
-
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -48,13 +39,9 @@ import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufOutputStream;
 
-import io.netty.handler.stream.ChunkedStream;
-import io.netty.handler.stream.ChunkedFile;
-
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -69,73 +56,39 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.http.HttpContentCompressor;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
-
-
-import java.util.List;
-import java.util.ArrayList;
-
 import org.apache.lucene.facet.FacetResult;
 import org.apache.lucene.facet.Facets;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.document.Document;
-
-import org.apache.lucene.facet.LabelAndValue;
 import org.apache.lucene.queryparser.classic.QueryParser;
 
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.facet.taxonomy.TaxonomyReader;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.search.SearcherManager;
-import org.apache.lucene.search.SearcherFactory;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.index.Term;
 
 import org.apache.lucene.facet.DrillDownQuery;
-import org.apache.lucene.facet.DrillSideways;
 import org.apache.lucene.search.IndexSearcher;
-
-import org.apache.lucene.index.IndexReader;
-
-import org.apache.lucene.search.TermRangeQuery;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
-import org.apache.lucene.search.BooleanQuery.*;
-import org.apache.lucene.facet.DrillDownQuery;
-import org.apache.lucene.facet.DrillSideways.DrillSidewaysResult;
-import org.apache.lucene.facet.FacetsCollector;
 import org.apache.lucene.facet.FacetsCollectorManager;
 import org.apache.lucene.facet.taxonomy.FastTaxonomyFacetCounts;
 
-import org.apache.lucene.facet.FacetsCollectorManager.FacetsResult;
 
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.TopDocs;
 
 
-import org.apache.lucene.index.MultiTerms;
-import org.apache.lucene.index.PostingsEnum;
-import org.apache.lucene.util.BytesRef;
-
 import org.apache.lucene.util.IOUtils;
-
-import org.apache.lucene.index.StoredFields;
-
-
 import org.apache.lucene.search.ScoreDoc;
 
 import com.fasterxml.uuid.Generators;
 
 import io.netty.buffer.Unpooled;
-import io.netty.util.CharsetUtil;
-import nl.cleancode.jPointerStore;
 
 public final class PointerServer {
 

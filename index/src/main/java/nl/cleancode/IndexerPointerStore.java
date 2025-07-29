@@ -98,7 +98,6 @@ class IndexerPointerStore {
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
 
-
         Analyzer analyzer = new StandardAnalyzer();
         iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
@@ -134,7 +133,6 @@ class IndexerPointerStore {
 	    System.out.println(uuid.asText());
 
 	    Document luceneDoc = new Document();
-
 
 	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
 	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
