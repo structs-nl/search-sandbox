@@ -49,10 +49,10 @@ https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
 
 docker start -i search-sandbox
 
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -index ../transform/output.json
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -serve 8080
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -index ../transform/output.json
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -serve 8080
 
-curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
+curl -d '{"pagesize": 1000,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
 
 
 	{
