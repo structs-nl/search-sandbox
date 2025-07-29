@@ -27,6 +27,9 @@ import java.io.OutputStream;
 
 import java.util.HashMap;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.bootstrap.ServerBootstrap;
@@ -221,12 +224,14 @@ public final class PointerServer {
                 var analyzer = new StandardAnalyzer();
                 var parser = new QueryParser("uuid", analyzer);
 
+		// TODO: change to an excluding filter, getting rid of series and subseries
+		querybuilder.add(new TermQuery(new Term("type", "file")), BooleanClause.Occur.FILTER);
                 var querynode = json.at("/query");
 
                 if (! querynode.isMissingNode() && ! querynode.isNull() && !querynode.asText().isEmpty() ) {
                     querybuilder.add(parser.parse(querynode.asText()), BooleanClause.Occur.MUST);
-                } else {
-                    querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
+		//} else {
+                //  querybuilder.add(new MatchAllDocsQuery(), BooleanClause.Occur.MUST);
                 }
 
                 var query = querybuilder.build();
@@ -234,14 +239,29 @@ public final class PointerServer {
                 var dq = new DrillDownQuery(pointerstore.indexer.fconfig, query);
 
                 for (var filter : json.at("/facetfilters")) {
-                    var op = filter.get(0);
-                    var arg1 = filter.get(1);
-                    var arg2 = filter.get(2);
 
-                    if (op.asText().equals("is")){
-                        dq.add(arg1.asText(), arg2.asText());
-                    }
-                }
+		    // list of lists
+		    System.out.println(filter);
+
+		    var dim = "";
+		    var path = new LinkedList<String>();
+	     		    
+		    var elems = filter.elements();
+		    while (elems.hasNext()){			
+			var elem = elems.next();
+			
+			if (dim.isEmpty()) {
+			    dim = elem.asText();
+			} else {
+			    path.add(elem.asText());
+			}
+		    }
+		    if (! dim.isEmpty() && path.size() > 0){
+			var patharr = new String[path.size()];
+			patharr = path.toArray(patharr);
+			dq.add(dim, patharr);
+		    }
+		}
 
 		//var result = new DrillSideways(searcher, pointerstore.indexer.fconfig, taxoReader).search(dq, pagesize);
 		var fcm = new FacetsCollectorManager();
@@ -268,6 +288,9 @@ public final class PointerServer {
 		    var facets = new FastTaxonomyFacetCounts(taxoReader, pointerstore.indexer.fconfig, result.facetsCollector());
 
 		    var parents = facets.getAllChildren("parents");
+
+		    // TODO: we only get the facets below back. Is that what we want? What about other adjusted values?
+		    
 
 		    for (var lv : parents.labelValues) {
 			gen.writeStartObject();

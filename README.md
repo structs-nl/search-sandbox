@@ -1,5 +1,5 @@
 # Doel
-
+	
 In een sandbox omgeving testen van een aantal centrale search features voor het GLOBALISE onderzoeksportaal.
 
 De focus zal in eerste instantie liggen op hierarchische facetten, welke voor twee doelen worden gebruikt:
@@ -24,7 +24,7 @@ https://github.com/structs-nl/zoekintranscripties
 
 EAD en Inception materiaal met NER, events en "entiteiten"
 node script dat json produceert.
-
+	
 ## Elastic
 	
 Direct met ES praten vanuit de UI
@@ -49,38 +49,10 @@ https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
 
 docker start -i search-sandbox
 
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -index ../transform/output.json
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ../../opt/data -serve 8080
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -index ../transform/output.json
+java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -serve 8080
 
-curl -d '{"pagesize": 2,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
-
-
-	{
-		"type": "series",
-		"uuid": "8b238f43-de8e-11bf-e053-09f0900a4541",
-		"title": "Kamer Enkhuizen",
-		"parents": []
-	},
-
-	{
-		"type": "subseries",
-		"uuid": "8b238f43-de9b-11bf-e053-09f0900a4541",
-		"title": "STUKKEN BETREFFENDE HET FINANCIEEL BEHEER",
-		"parents": [
-			"8b238f43-de8e-11bf-e053-09f0900a4541"
-		]
-	},
-
-	{
-		"type": "otherlevel",
-		"uuid": "8b238f43-de9c-11bf-e053-09f0900a4541",
-		"title": "Registers bevattende akten van transport van aandelen  van de kamer Enkhuizen",
-		"parents": [
-			"8b238f43-de8e-11bf-e053-09f0900a4541",
-			"8b238f43-de9b-11bf-e053-09f0900a4541"
-		]
-	},
-	
+curl -d '{"pagesize": 10,"facetpagesize": 100, "query": "", "facetfilters": [["parents", "8b238f43-de8e-11bf-e053-09f0900a4541"]]}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
 	
 **Docker create**
 
