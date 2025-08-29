@@ -74,6 +74,8 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.index.Term;
 
 import org.apache.lucene.facet.DrillDownQuery;
+import org.apache.lucene.facet.DrillSideways;
+
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.MatchAllDocsQuery;
@@ -263,13 +265,13 @@ public final class PointerServer {
 		    }
 		}
 
-		//var result = new DrillSideways(searcher, pointerstore.indexer.fconfig, taxoReader).search(dq, pagesize);
-		var fcm = new FacetsCollectorManager();
-		var result = FacetsCollectorManager.search(searcher, dq, pagesize, fcm);
-
-                //hits = result.hits.scoreDocs;
-		hits = result.topDocs().scoreDocs;
+		var result = new DrillSideways(searcher, pointerstore.indexer.fconfig, taxoReader).search(dq, pagesize);
+                hits = result.hits.scoreDocs;
 		
+		//var fcm = new FacetsCollectorManager();
+		//var result = FacetsCollectorManager.search(searcher, dq, pagesize, fcm);
+		//hits = result.topDocs().scoreDocs;
+	       
                 if (hits.length == 0) {
                     // no results
                     gen.writeNumberField("hits", 0);
@@ -282,15 +284,15 @@ public final class PointerServer {
                     var facetpagenode = json.at("/facetpagesize");
 
                     gen.writeStringField("qid", queryuuid.toString());
-                    gen.writeNumberField("hits", result.topDocs().totalHits.value());
+                    //gen.writeNumberField("hits", result.topDocs().totalHits.value());
+		    gen.writeNumberField("hits", result.hits.totalHits.value());
+
                     gen.writeArrayFieldStart("facets");
 
-		    var facets = new FastTaxonomyFacetCounts(taxoReader, pointerstore.indexer.fconfig, result.facetsCollector());
-
-		    var parents = facets.getAllChildren("parents");
-
-		    // TODO: we only get the facets below back. Is that what we want? What about other adjusted values?
+		    // var facets = new FastTaxonomyFacetCounts(taxoReader, pointerstore.indexer.fconfig, result.facetsCollector());
+		    var facets = result.facets;
 		    
+		    var parents = facets.getAllChildren("parents");
 
 		    for (var lv : parents.labelValues) {
 			gen.writeStartObject();
