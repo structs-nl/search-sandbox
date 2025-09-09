@@ -1,4 +1,4 @@
-package nl.cleancode;
+package nl.structs;
 
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
@@ -95,15 +95,15 @@ import com.fasterxml.uuid.Generators;
 
 import io.netty.buffer.Unpooled;
 
-public final class PointerServer {
+public final class Server {
 
-    private jPointerStore pointerstore;
+    private nl.structs.Searcher Searcher;
 
     private HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
-    public PointerServer(int PORT, jPointerStore jpointerstore) 
+    public Server(int PORT, Searcher searcher) 
     throws URISyntaxException, IOException, InterruptedException
     {
-        pointerstore = jpointerstore;
+        Searcher = searcher;
 
         var bossGroup = new NioEventLoopGroup(1);
         var workerGroup = new NioEventLoopGroup();
@@ -179,8 +179,8 @@ public final class PointerServer {
     throws IOException, InterruptedException
     {
 
-	var indexReader = DirectoryReader.open(pointerstore.indexer.dir);
-	var taxoReader = new DirectoryTaxonomyReader(pointerstore.indexer.taxdir);
+	var indexReader = DirectoryReader.open(Searcher.indexer.dir);
+	var taxoReader = new DirectoryTaxonomyReader(Searcher.indexer.taxdir);
 	var searcher = new IndexSearcher(indexReader);
 	var storedFields = searcher.storedFields();
 
@@ -196,7 +196,7 @@ public final class PointerServer {
             
             var bodybuf = Unpooled.directBuffer(8);
             var byteoutput = new ByteBufOutputStream(bodybuf);
-            var gen = pointerstore.mapper.getFactory().createGenerator((OutputStream)byteoutput);      
+            var gen = Searcher.mapper.getFactory().createGenerator((OutputStream)byteoutput);      
             
             gen.writeStartObject();
 
@@ -238,7 +238,7 @@ public final class PointerServer {
 
                 var query = querybuilder.build();
 		
-                var dq = new DrillDownQuery(pointerstore.indexer.fconfig, query);
+                var dq = new DrillDownQuery(Searcher.indexer.fconfig, query);
 
                 for (var filter : json.at("/facetfilters")) {
 
@@ -265,7 +265,7 @@ public final class PointerServer {
 		    }
 		}
 
-		var result = new DrillSideways(searcher, pointerstore.indexer.fconfig, taxoReader).search(dq, pagesize);
+		var result = new DrillSideways(searcher, Searcher.indexer.fconfig, taxoReader).search(dq, pagesize);
                 hits = result.hits.scoreDocs;
 		
 		//var fcm = new FacetsCollectorManager();
@@ -399,7 +399,7 @@ public final class PointerServer {
             } else if (httpRequest.method().equals(HttpMethod.PUT)) {
                 if (httpRequest.uri().startsWith("/query")) {
                     ByteBuf data = httpRequest.content();
-                    JsonNode query = pointerstore.mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+                    JsonNode query = Searcher.mapper.readTree((data.toString(StandardCharsets.UTF_8)));
 		    search(query, ctx, httpRequest);		    
                 }
             }

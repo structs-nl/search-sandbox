@@ -1,4 +1,4 @@
-package nl.cleancode;
+package nl.structs;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -60,7 +60,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.Path;
 
-class IndexerPointerStore {
+class Indexer {
 
     public Directory dir;
     public Directory taxdir;
@@ -72,7 +72,7 @@ class IndexerPointerStore {
 
     private LinkedList<DateTimeFormatter> formatters;
     
-    jPointerStore pointerstore;
+    Searcher Searcher;
 
     public static final org.apache.lucene.document.FieldType TextFieldType = new org.apache.lucene.document.FieldType();
 
@@ -85,8 +85,8 @@ class IndexerPointerStore {
         TextFieldType.freeze();
       }
 
-    IndexerPointerStore(jPointerStore jpointerstore, String basepath) throws IOException {
-        pointerstore = jpointerstore;
+    Indexer(Searcher searcher, String basepath) throws IOException {
+        Searcher = searcher;
 	
         fconfig = new FacetsConfig();
 

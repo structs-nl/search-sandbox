@@ -1,4 +1,4 @@
-package nl.cleancode;
+package nl.structs;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ExecutionException;
@@ -23,17 +23,17 @@ import java.io.FileWriter;
 
 import org.apache.commons.cli.*;
 
-public class jPointerStore {
+public class Searcher {
     protected ObjectMapper mapper = new ObjectMapper();
 
     protected JsonFactory factory;
-    protected IndexerPointerStore indexer;
+    protected Indexer indexer;
     protected String datapath;
     protected JsonNode config;
     private Path configpath;
     protected BufferedWriter logwriter;
 
-    public jPointerStore(String[] args)
+    public Searcher(String[] args)
     throws URISyntaxException, IOException, InterruptedException, ExecutionException,
     org.apache.lucene.queryparser.classic.ParseException, ParseException
     {
@@ -79,13 +79,13 @@ public class jPointerStore {
         logwriter = new BufferedWriter(fw);
 
 	factory = new JsonFactory();
-	indexer = new IndexerPointerStore(this, datapath);
+	indexer = new Indexer(this, datapath);
 
         if(cmd.hasOption("serve")) {
             String port = cmd.getOptionValue("serve");
             try {
                 int portnr = Integer.parseInt(port);
-                new PointerServer(portnr, this);
+                new Server(portnr, this);
             } catch (Exception e) {
                 
             }
@@ -133,6 +133,6 @@ public class jPointerStore {
 
     public static void main(String[] args) throws Exception
     {
-        new jPointerStore(args);
+        new Searcher(args);
     }
 }
