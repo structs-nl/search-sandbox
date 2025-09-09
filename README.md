@@ -46,10 +46,8 @@ https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-
 - [ ] meerdere waarden per dimensie
 - [ ] SortedSet implementatie testen
 - [ ] zoeken naar facetten
-- [ ] beschrijven van de structuur
-- [ ] indexeren via http ipv file
 - [ ] nested documents
-
+- [ ] indexeren via http ipv file
 
 ## UI
 
