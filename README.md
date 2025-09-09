@@ -36,6 +36,8 @@ https://github.com/structs-nl/zoekintranscripties
 Lucene heeft een native hierarchische facet implementatie (ja, zelfs twee) die niet in Elastic beschikbaar is.
 Elastic heeft haar eigen 'aggregates' implementatie.
 
+Het is eenvoudig om Lucene beschikbaar te stellen met een http server en de Java API direct te gebruiken ipv de JSON wrappers van Elastic. Een alternatieve benadering voor de logge Elastic servers die een middleware laag (en dus extra werk) voorkomt.
+
 https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-summary.html
 
 
