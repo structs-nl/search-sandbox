@@ -16,7 +16,7 @@ dus moeten we werken met een subset die wel beschikbaar is en helpt bij de funct
 ## Data verzamelen en verwerken
 
 - [x] EAD parsen en json produceren
-- [] Inception materiaal parsen en json produceren voor NER, events en entities
+- [ ] Inception materiaal parsen en json produceren voor NER, events en entities
 	
 ## Elastic
 
@@ -27,9 +27,9 @@ client server interactie moet goed beschreven worden.
 
 https://github.com/structs-nl/zoekintranscripties
 
-- [] index structuur beschrijven
-- [] Data indexeren in docker instance
-- [] queries beschrijven
+- [ ] index structuur beschrijven
+- [ ] Data indexeren in docker instance
+- [ ] queries beschrijven
 
 ## Lucene
 
@@ -39,12 +39,6 @@ https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
 
 java -jar ./target/Searcher-0.8.jar -path ./data -index ../transform/output.json
 java -jar ./target/Searcher-0.8.jar -path ./data -serve 8080
-
-<<<<<<< HEAD
-docker start -i search-sandbox
-
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -index ../transform/output.json
-java -jar ./target/jPointerStore-1.0-SNAPSHOT.jar -path ./data -serve 8080
 
 curl -d '{"pagesize": 1000,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
 
@@ -75,9 +69,8 @@ curl -d '{"pagesize": 1000,"facetpagesize": 100, "query": "", "facetfilters": []
 		]
 	},
 	
-=======
+	
 curl -d '{"pagesize": 100,"facetpagesize": 100, "query": "title:de", "facetfilters": [["parents", "8b238f43-de8e-11bf-e053-09f0900a4541"]]}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
->>>>>>> 4ad3bb2b5af26a90122c9825e057f7293e7bf5f5
 	
 **Docker create**
 
@@ -86,8 +79,8 @@ docker run --name search-sandbox -p 8080:8080 -it -v "./:/app" search-sandbox-de
 
 ## UI
 
-- [] simpele ui met searchbox, resultatenlijst en https://infinite-tree.js.org sectie
-- [] API implementeren
+- [ ] simpele ui met searchbox, resultatenlijst en https://infinite-tree.js.org sectie
+- [ ] API implementeren
 
 
 	
