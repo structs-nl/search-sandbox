@@ -102,10 +102,7 @@ import org.apache.lucene.index.Term;
 
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways;
-<<<<<<< HEAD:index/src/main/java/nl/cleancode/PointerServer.java
-=======
 
->>>>>>> 4ad3bb2b5af26a90122c9825e057f7293e7bf5f5:index/src/main/java/nl/structs/Server.java
 import org.apache.lucene.search.IndexSearcher;
 
 import org.apache.lucene.index.IndexReader;
@@ -142,7 +139,6 @@ import com.fasterxml.uuid.Generators;
 
 import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
-import nl.cleancode.jPointerStore;
 
 public final class Server {
 
