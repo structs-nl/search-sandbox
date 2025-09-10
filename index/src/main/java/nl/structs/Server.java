@@ -12,9 +12,6 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 
-import java.time.LocalDate;
-
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
@@ -26,22 +23,14 @@ import java.nio.file.Paths;
 import java.io.OutputStream;
 
 import java.util.HashMap;
-import java.util.UUID;
-import java.util.Base64;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.core.JsonGenerator;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URIBuilder;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -57,7 +46,6 @@ import io.netty.handler.stream.ChunkedFile;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -403,7 +391,7 @@ public final class Server {
 
             ctx.write(response);
             ctx.write(bodybuf);
-
+	    
             byteoutput.close();
 
             var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
@@ -445,7 +433,13 @@ public final class Server {
                 if (httpRequest.uri().startsWith("/query")) {
                     ByteBuf data = httpRequest.content();
                     JsonNode query = Searcher.mapper.readTree((data.toString(StandardCharsets.UTF_8)));
-		    search(query, ctx, httpRequest);		    
+		    search(query, ctx, httpRequest);
+
+		    
+
+
+
+		    
                 }
             }
         }

@@ -12,19 +12,12 @@ import org.apache.lucene.document.Document;
 
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
-import org.apache.lucene.facet.taxonomy.TaxonomyReader;
-import org.apache.lucene.facet.DrillDownQuery;
-import org.apache.lucene.facet.DrillSideways;
 
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
-import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
 
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
@@ -33,32 +26,17 @@ import org.apache.lucene.store.FSDirectory;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.HashSet;
 
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Arrays;
 
-import com.fasterxml.jackson.core.JsonPointer;
-import org.apache.lucene.document.DateTools;
-import org.apache.lucene.document.DoublePoint;
 import org.apache.lucene.document.Field;
-import org.apache.lucene.document.LongPoint;
+import org.apache.lucene.document.FieldType;
+
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.facet.FacetField;
-
-
-import java.nio.file.FileVisitor;
-import java.nio.file.FileVisitResult;
-import java.nio.file.attribute.BasicFileAttributes;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.Path;
 
 class Indexer {
 
@@ -74,8 +52,8 @@ class Indexer {
     
     Searcher Searcher;
 
-    public static final org.apache.lucene.document.FieldType TextFieldType = new org.apache.lucene.document.FieldType();
-
+    public static final FieldType TextFieldType = new FieldType();
+    
     static {
         TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
         TextFieldType.setTokenized(true);
@@ -85,11 +63,9 @@ class Indexer {
         TextFieldType.freeze();
       }
 
-    Indexer(Searcher searcher, String basepath) throws IOException {
-        Searcher = searcher;
+    Indexer(String basepath) throws IOException {
 	
         fconfig = new FacetsConfig();
-
 
 	fconfig.setHierarchical("parents", true);
 	fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
@@ -97,7 +73,6 @@ class Indexer {
 	
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
-
 
         Analyzer analyzer = new StandardAnalyzer();
         iwc = new IndexWriterConfig(analyzer);
@@ -203,10 +178,6 @@ class Indexer {
 
         if (iw != null)
             iw.close();
-    }
-
-    public enum FieldType {
-        STRING, DATETIME, TEXT, LONG, DOUBLE
     }
 
     public static ZonedDateTime tryPatterns(String date, List<DateTimeFormatter> formatters){

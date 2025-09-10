@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ExecutionException;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.LinkedList;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonFactory;
@@ -69,23 +68,24 @@ public class Searcher {
             return;
         }
 
-        readConfig();
+        //readConfig();
 
-        File file = new File(datapath + "/log.txt");
-        if (!file.exists())
-            file.createNewFile();
+        //File file = new File(datapath + "/log.txt");
+        //if (!file.exists())
+        //    file.createNewFile();
 
-        FileWriter fw = new FileWriter(file, true);
-        logwriter = new BufferedWriter(fw);
+        //FileWriter fw = new FileWriter(file, true);
+        //logwriter = new BufferedWriter(fw);
 
 	factory = new JsonFactory();
-	indexer = new Indexer(this, datapath);
+	indexer = new Indexer(datapath);
 
         if(cmd.hasOption("serve")) {
             String port = cmd.getOptionValue("serve");
             try {
                 int portnr = Integer.parseInt(port);
                 new Server(portnr, this);
+		
             } catch (Exception e) {
                 
             }
@@ -115,8 +115,6 @@ public class Searcher {
         JsonGenerator gen = factory.createGenerator(jsonout);    
 
         mapper.writerWithDefaultPrettyPrinter().writeValue(gen, config);
-        //mapper.writeTree(gen, config);
-
         mapper.writeTree(gen, config);
         gen.close();
     }
@@ -130,7 +128,7 @@ public class Searcher {
         } else
             config = mapper.createObjectNode();
     }
-
+   
     public static void main(String[] args) throws Exception
     {
         new Searcher(args);
