@@ -43,8 +43,8 @@ https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-
 
 - [x] json indexeren
 - [x] hierarchische drill down queries
-- [ ] meerdere waarden per dimensie
-- [ ] SortedSet implementatie testen
+- [ ] meerdere waarden per dimensie testen
+- [ ] SortedSet implementatie vergelijkken
 - [ ] zoeken naar facetten
 - [ ] nested documents
 - [ ] indexeren via http ipv file
