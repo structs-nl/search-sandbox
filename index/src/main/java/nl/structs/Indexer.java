@@ -6,7 +6,6 @@ import java.nio.file.Paths;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 
@@ -23,7 +22,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -68,13 +66,14 @@ class Indexer {
         fconfig = new FacetsConfig();
 
 	fconfig.setHierarchical("parents", true);
+	fconfig.setMultiValued("parents", true);
 	fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
 	fconfig.setRequireDimCount("parents", true);
 	
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
 
-        Analyzer analyzer = new StandardAnalyzer();
+        var analyzer = new StandardAnalyzer();
         iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
         iwc.setRAMBufferSizeMB(256.0);
@@ -89,12 +88,10 @@ class Indexer {
     throws IOException, JsonProcessingException, InterruptedException
     {
 	        
-        formatters = new LinkedList<DateTimeFormatter>();
-        formatters.add(DateTimeFormatter.ISO_DATE_TIME);
-        DateTimeFormatter localIso = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
-        formatters.add(localIso);	
-
-
+        //formatters = new LinkedList<DateTimeFormatter>();
+        //formatters.add(DateTimeFormatter.ISO_DATE_TIME);
+        //DateTimeFormatter localIso = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
+        //formatters.add(localIso);	
 	
 	Iterator<JsonNode> iterator = json.elements();
 	
@@ -105,39 +102,35 @@ class Indexer {
 	    JsonNode uuid = doc.at("/uuid");
 	    JsonNode title = doc.at("/title");
 	    JsonNode type = doc.at("/type");
-
 	    JsonNode parents = doc.at("/parents");
 
-	    System.out.println(uuid.asText());
-
+	    
 	    Document luceneDoc = new Document();
-
 
 	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
 	    luceneDoc.add(new TextField("type", type.asText(), Field.Store.YES));
 
 	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
 
-	    Iterator<JsonNode> pariter = parents.elements();
-	    LinkedList<String> parpath = new LinkedList<String>();
-
+	    var pariter = parents.elements();
+	    var parpath = new LinkedList<String>();
 	    
 	    while (pariter.hasNext()) {
-		JsonNode parent = pariter.next();
+		var parent = pariter.next();
 		parpath.add(parent.asText());
 	    }
 
 	    if (! parpath.isEmpty()){
-		String[] path = new String[parpath.size()];
+		var path = new String[parpath.size()];
 		path = parpath.toArray(path);		
 		luceneDoc.add(new FacetField("parents",path));
 	    }
-	   	    
-	    updateDoc(fconfig.build(dtw, luceneDoc), new Term("uuid", uuid.asText()) );
-	    
+
+	    iw.updateDocument(new Term("uuid", uuid.asText()),  fconfig.build(dtw, luceneDoc));
 	}
 
-	commit();
+	dtw.commit();
+	iw.commit();
 	
 	// String datetext = node.asText();
 	//ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
@@ -152,26 +145,6 @@ class Indexer {
 
     }
 
-    public void commit()
-    throws IOException
-    {
-        if (iw != null && dtw != null) {
-            dtw.commit();
-            iw.commit();
-        }
-    }
-
-    public void updateDoc(Document doc, Term idterm)
-    throws IOException, InterruptedException
-    {
-        iw.updateDocument(idterm, fconfig.build(dtw, doc));
-    }
-
-    public void deleteDoc(Term idterm)
-    throws IOException, InterruptedException
-    {       
-        iw.deleteDocuments(idterm);
-    }
     public void close() throws IOException {
         if (dtw != null)
             dtw.close();
