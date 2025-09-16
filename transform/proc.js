@@ -47,6 +47,36 @@ const proc = (c, parents = []) => {
 const list = proc(dsc);
 
 const jsonstr = JSON.stringify(list, null,  "\t");
-const prom = writeFile("output.json", jsonstr);
+writeFile("output.json", jsonstr);
 
 console.log("done");
+
+
+
+const wrap = x => "\"" + x + "\""
+
+const esc = x =>  x != null : x.replaceAll('"', '\\"') ? x
+
+const dotlines = []
+
+dotlines.push("digraph act {")
+dotlines.push("node [shape=box];")
+
+for (const node of list) {
+
+    if (node["type"] != "file") {
+
+	dotlines.push( wrap(node["uuid"]) + " [label=\"" + esc(node["title"]) + "\"];" )
+	const lastparent = node["parents"][node["parents"].length - 1]
+    
+	dotlines.push(wrap(lastparent) + " -> " + wrap(node["uuid"]) + ";")
+    }
+}
+
+dotlines.push("}")
+
+const dot = dotlines.join("\n")
+
+writeFile("output.dot", dot)
+
+
