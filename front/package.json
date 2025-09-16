@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "hyperscript": "^2.0.2",
     "infinite-tree": "^1.18.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.9"
+  },
+  "scripts": {
+      "build": "./node_modules/.bin/esbuild src/*.css src/*.html src/*.js --define:DEV=false  --bundle --outdir=./static/ --loader:.html=copy;.css=copy",
+      "dev": "./node_modules/.bin/esbuild src/*.css src/*.html src/*.js --define:DEV=true --bundle --watch --outdir=./static/ --servedir=./static --loader:.html=copy;.css=copy"
   }
 }

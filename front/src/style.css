@@ -1,0 +1,58 @@
+.sidebar {
+  height: 100%;
+  width: 400px; 
+  position: fixed;
+  z-index: 2;
+  top: 0;
+  left: 0;
+  background-color: white;
+  border-right: 5px solid black;
+}
+
+.top {
+    height: 150px;
+    width: 100%;
+    left: 400px;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    background-color: white;
+    border-bottom: 5px solid black;
+}
+
+#query {
+    position: relative;
+    top: 30px;
+    left: 24px;
+    width: 1258px;
+    padding: 15px;
+    margin: 5px;
+    box-sizing: border-box;
+    border: 3px dotted black;
+    border-radius: 0px;
+    font-size: 40px;
+    font-family: monospace;     
+}
+
+#query:focus {
+  outline: none !important;
+}
+
+.results {
+    top: 155px;
+    left: 400px;
+    position: absolute;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    z-index: 0;
+}
+
+.result {
+    position: relative;
+    border: 3px dotted black;
+    width: 1230px;
+    margin: 30px;
+    padding: 0px 10px 10px 10px;
+}
+
+
