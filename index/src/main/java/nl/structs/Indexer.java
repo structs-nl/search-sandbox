@@ -49,7 +49,7 @@ class Indexer {
     private LinkedList<DateTimeFormatter> formatters;
     
     Searcher Searcher;
-
+    
     public static final FieldType TextFieldType = new FieldType();
     
     static {
@@ -59,12 +59,12 @@ class Indexer {
         TextFieldType.setStoreTermVectorOffsets(true);
         TextFieldType.setStoreTermVectorPositions(true);
         TextFieldType.freeze();
-      }
-
+    }
+    
     Indexer(String basepath) throws IOException {
 	
         fconfig = new FacetsConfig();
-
+	
 	fconfig.setHierarchical("parents", true);
 	fconfig.setMultiValued("parents", true);
 	fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
@@ -72,22 +72,21 @@ class Indexer {
 	
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
-
+	
         var analyzer = new StandardAnalyzer();
         iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
         iwc.setRAMBufferSizeMB(256.0);
-
+	
         iw = new IndexWriter(dir, iwc);
         dtw = new DirectoryTaxonomyWriter(taxdir);
 	
     }
-
-
+    
     public void index(JsonNode json)
-    throws IOException, JsonProcessingException, InterruptedException
+	throws IOException, JsonProcessingException, InterruptedException
     {
-	        
+	
         //formatters = new LinkedList<DateTimeFormatter>();
         //formatters.add(DateTimeFormatter.ISO_DATE_TIME);
         //DateTimeFormatter localIso = DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
@@ -96,22 +95,22 @@ class Indexer {
 	Iterator<JsonNode> iterator = json.elements();
 	
 	while (iterator.hasNext()) {
-
+	    
             JsonNode doc = iterator.next();
-
+	    
 	    JsonNode uuid = doc.at("/uuid");
 	    JsonNode title = doc.at("/title");
 	    JsonNode type = doc.at("/type");
 	    JsonNode parents = doc.at("/parents");
-
+	    
 	    
 	    Document luceneDoc = new Document();
-
+	    
 	    luceneDoc.add(new StringField("uuid",uuid.asText(), Field.Store.YES));
 	    luceneDoc.add(new TextField("type", type.asText(), Field.Store.YES));
-
+	    
 	    luceneDoc.add(new TextField("title", title.asText(), Field.Store.YES));
-
+	    
 	    var pariter = parents.elements();
 	    var parpath = new LinkedList<String>();
 	    
@@ -119,50 +118,49 @@ class Indexer {
 		var parent = pariter.next();
 		parpath.add(parent.asText());
 	    }
-
+	    
 	    if (! parpath.isEmpty()){
 		var path = new String[parpath.size()];
 		path = parpath.toArray(path);		
 		luceneDoc.add(new FacetField("parents",path));
 	    }
-
+	    
 	    iw.updateDocument(new Term("uuid", uuid.asText()),  fconfig.build(dtw, luceneDoc));
 	}
-
+	
 	dtw.commit();
 	iw.commit();
 	
 	// String datetext = node.asText();
 	//ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
 	//String encodedDateTime = DateTools.dateToString(Date.from(zonedDateTime.toInstant()),DateTools.Resolution.MILLISECOND);
-
+	
 	//luceneDoc.add(new StringField(fieldname, encodedDateTime, Field.Store.NO));
 
 	//String y = Integer.toString(zonedDateTime.getYear());
 	//String m = Integer.toString(zonedDateTime.getMonthValue());
 	//String d = Integer.toString(zonedDateTime.getDayOfMonth());
 	//luceneDoc.add(new FacetField(fieldname, y, m, d));
-
+	
     }
 
     public void close() throws IOException {
         if (dtw != null)
             dtw.close();
-
+	
         if (iw != null)
             iw.close();
     }
-
+    
     public static ZonedDateTime tryPatterns(String date, List<DateTimeFormatter> formatters){
         for(DateTimeFormatter formatter: formatters){
             try {
                 ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, formatter);
                 return zonedDateTime;
             } catch(Exception e){
-
+		
             }
         }
         throw new IllegalArgumentException("Could not parse " + date);
     }
-
 }
