@@ -7,6 +7,7 @@ https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-
 https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
 
 java -jar ./target/Searcher-0.8.jar -path ./data -index ../transform/output.json
+
 java -jar ./target/Searcher-0.8.jar -path ./data -serve 8080
 
 curl -d '{"pagesize": 1000,"facetpagesize": 100, "query": "", "facetfilters": []}' -H "Content-Type: application/json" -X PUT http://localhost:8080/query | jq .
