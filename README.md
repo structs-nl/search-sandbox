@@ -27,19 +27,18 @@ client server interactie moet goed beschreven worden.
 
 https://github.com/structs-nl/zoekintranscripties
 
-- [ ] index structuur beschrijven
-- [ ] Data indexeren in docker instance
+- [x] Data preprocessen
 - [ ] queries beschrijven
+- [ ] index overnemen
 
 ## Lucene
 
 Lucene heeft een native hierarchische facet implementatie (ja, zelfs twee) die niet in Elastic beschikbaar is.
 Elastic heeft haar eigen 'aggregates' implementatie.
 
-Het is eenvoudig om Lucene beschikbaar te stellen met een http server en de Java API direct te gebruiken ipv de JSON wrappers van Elastic. Een alternatieve benadering voor de logge Elastic servers die een middleware laag (en dus extra werk) voorkomt.
+Het is eenvoudig om Lucene beschikbaar te stellen met een http server en de Java API direct te gebruiken ipv de JSON wrappers van Elastic. Een alternatieve benadering voor de Elastic servers die een middleware laag (en dus extra werk) voorkomt.
 
 https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-summary.html
-
 
 - [x] json indexeren
 - [x] hierarchische drill down queries
@@ -51,8 +50,11 @@ https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-
 
 ## UI
 
-- [ ] simpele ui met searchbox, resultatenlijst en https://infinite-tree.js.org sectie
+- [ ] simpele ui met searchbox, resultatenlijst, date en hierarchie facetten sectie
 - [ ] API implementeren
 
+<img width="1016" height="842" alt="Filters with list" src="https://github.com/user-attachments/assets/17048dd4-9484-4c91-8548-51425b8981c7" />
 
-	
+<img width="1016" height="841" alt="Filters with map" src="https://github.com/user-attachments/assets/fa9bf540-0119-4658-9def-514c30d4f466" />
+
+
