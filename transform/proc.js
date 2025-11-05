@@ -9,7 +9,7 @@ const proc = (c, parents = []) => {
     const level = c.attributes["level"];
     
     const attrs = c.children.filter( (x => x["name"] == "did"))[0]
-          ?.children.filter( (x => x["name"] == "unittitle" || x["name"] == "unitid" ))
+          ?.children.filter( (x => x["name"] == "unittitle" || x["name"] == "unitid" ||  x["name"] == "unitdate" ))
 	  .map (x => (
 	      {  "name": x["name"], 
 		 "label": x.children[0].text,
@@ -20,8 +20,13 @@ const proc = (c, parents = []) => {
     const uuid = attrs?.filter(x => x["name"] == "unitid" && x.attr["type"] == "urn:uuid")?.[0].label;    
     const id = attrs?.filter(x => x["name"] == "unitid" && x.attr["identifier"] !== null)?.[0].label;
     const title = attrs?.filter(x => x["name"] == "unittitle")?.[0].label;
-    
+
+    // TODO: check cases when the normal is not filled 
+    const date = attrs?.filter(x => x["name"] == "unitdate")?.[0]?.attr["normal"]
     const doc = {"type": level, "uuid": uuid, "title": title};
+
+    if (date != null)
+	doc["date"] = date
     
     if (level == "file" && id != null) {
 
