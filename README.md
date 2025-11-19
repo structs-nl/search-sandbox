@@ -52,8 +52,3 @@ https://lucene.apache.org/core/10_0_0/demo/org/apache/lucene/demo/facet/package-
 
 - [ ] simpele ui met searchbox, resultatenlijst, date en hierarchie facetten sectie
 - [ ] API implementeren
-
-<img width="1693" height="1403" alt="Filters with list" src="https://github.com/user-attachments/assets/2a9233d4-3985-47dc-868b-214b5bf85ecd" />
-
-
-<img width="1693" height="1401" alt="Filters with map" src="https://github.com/user-attachments/assets/2eb0baa8-dfaa-4e1f-80ea-d7a37c5583b1" />
