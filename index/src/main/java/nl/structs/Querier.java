@@ -44,8 +44,7 @@ public class Querier {
     protected HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
     
     public Querier(Searcher searcher) {
-	
-	
+	_searcher = searcher;
     }
     
     protected class SearchState {
