@@ -6,9 +6,32 @@
   
   <body>
     <div class="sidebar">
+
+      <ul id="myUL">
+	<li><span>Beverages</span>
+	  <ul class="nested">
+	    <li>Water</li>
+	    <li>Coffee</li>
+	    <li><span class="caret">Tea</span>
+	      <ul class="nested">
+		<li>Black Tea</li>
+		<li>White Tea</li>
+		<li><span class="caret">Green Tea</span>
+		  <ul class="nested">
+		    <li>Sencha</li>
+		    <li>Gyokuro</li>
+		    <li>Matcha</li>
+		    <li>Pi Lo Chun</li>
+		  </ul>
+		</li>
+	      </ul>
+	    </li>
+	  </ul>
+	</li>
+      </ul>
+	    
       
-      
-    </div>
+      </div>
     <div class="top">
       <input type="text" id="query" name="query">
     </div>
