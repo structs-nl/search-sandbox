@@ -194,10 +194,27 @@ public class Searcher {
 		
 	    } else if (httpRequest.method().equals(HttpMethod.PUT)) {
 		if (httpRequest.uri().startsWith("/query")) {
-		    ByteBuf data = httpRequest.content();
-		    JsonNode query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
 		    
-		    querier.search(query, ctx, httpRequest);
+		    var data = httpRequest.content();
+		    var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+		    
+		    var bodybuf = querier.search(query, ctx, httpRequest);
+
+		    var response = new DefaultHttpResponse(HTTP_1_1, OK);
+		    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+		    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+		    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, bodybuf.readableBytes());
+
+		    if (HttpUtil.isKeepAlive(httpRequest))
+			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+	    
+		    ctx.write(response);
+		    ctx.write(bodybuf);
+	    
+		    var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+		    if (!HttpUtil.isKeepAlive(httpRequest))
+			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+		    
 		    
 		} else if (httpRequest.uri().startsWith("/ingest")) {
 		    
