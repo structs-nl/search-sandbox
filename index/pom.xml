@@ -84,6 +84,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-highlighter</artifactId>
+	    <version>10.2.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.6</version>
@@ -116,7 +122,7 @@
                     <configuration>
                     <transformers>
                         <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                        <mainClass>nl.cleancode.jPointerStore</mainClass>
+                        <mainClass>nl.structs.Searcher</mainClass>
                         </transformer>
                     </transformers>
                     </configuration>

@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.HashMap;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.uuid.Generators;
@@ -16,9 +17,10 @@ import io.netty.buffer.ByteBuf;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
 import org.apache.lucene.facet.DrillDownQuery;
 import org.apache.lucene.facet.DrillSideways;
+import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 
-import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.util.IOUtils;
 
 import org.apache.lucene.search.TermQuery;
@@ -28,242 +30,318 @@ import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopDocs;
+
+import org.apache.lucene.search.uhighlight.PassageFormatter;
+import org.apache.lucene.search.uhighlight.Passage;
 
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 
+import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
+
+
 public class Querier {
 
-    protected Searcher _searcher;
-    protected HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
-    
-    public Querier(Searcher searcher) {
-	_searcher = searcher;
-    }
-    
-    protected class SearchState {
-	public Query query;
-	public ScoreDoc scoredoc;
-	
-	SearchState(Query q, ScoreDoc sd) {
-	    query = q;
-	    scoredoc = sd;
-	}
-    }
+	protected Searcher _searcher;
+	protected IndexSearcher indexSearcher;
+	protected DirectoryReader indexReader;
+	protected Analyzer analyzer;
+	protected HighlightsAsObject highlighter;
+	protected DirectoryTaxonomyReader taxoReader;
+	protected HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
 
-    public static SearchQuery parseQuery(JsonNode json)
-    {
-	// Get the query out of the JSON
-	
-	var sq = new SearchQuery();
-	var qidnode = json.at("/qid");
+	public Querier(Searcher searcher)
+			throws IOException, InterruptedException {
 
-	if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
-	    sq.queryid = qidnode.asText();
+		_searcher = searcher;
+		indexReader = DirectoryReader.open(_searcher.indexer.dir);
+		taxoReader = new DirectoryTaxonomyReader(_searcher.indexer.taxdir);
+		indexSearcher = new IndexSearcher(indexReader);
+		analyzer = new StandardAnalyzer();
+		highlighter = new HighlightsAsObject(UnifiedHighlighter.builder(indexSearcher, analyzer)	
+								.withMaxLength(1000000000) // is there a better way of doing this?
+								.withFormatter(new PassageReturningFormatter()));
 	}
 
-	var pagenode = json.at("/pagesize");
-	if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
-
-	    // TODO errorhandline
-	    sq.pageSize = pagenode.asInt();
+	public void close() throws IOException {
+		IOUtils.close(indexReader, taxoReader);
 	}
 
-	var querynode = json.at("/query");
-		
-	if (! querynode.isMissingNode() && ! querynode.isNull() && !querynode.asText().isEmpty() ) {
-	    sq.queryString = querynode.asText();
-	}
+	protected class SearchState {
+		public Query query;
+		public ScoreDoc doc;
 
-	var facetpagenode = json.at("/facetpagesize");
-	if (!facetpagenode.isMissingNode() && !facetpagenode.isNull() && !facetpagenode.asText().isEmpty()) {
-
-	    // TODO errorhandline
-	    sq.facetPageSize = facetpagenode.asInt();
-	}
-
-	
-	for (var filter : json.at("/facetfilters")) {
-
-	    var dim = "";
-	    var path = new LinkedList<String>();
-	     		    
-	    var elems = filter.elements();
-	    while (elems.hasNext()){			
-		var elem = elems.next();
-		
-		if (dim.isEmpty()) {
-		    dim = elem.asText();
-		} else {
-		    path.add(elem.asText());
+		SearchState(Query q, ScoreDoc doc) {
+			query = q;
+			this.doc = doc;
 		}
-	    }
-	    
-	    if (! dim.isEmpty() && path.size() > 0){
-		var patharr = new String[path.size()];
-		patharr = path.toArray(patharr);
-		sq.facetfilters.add(sq.new PathFilter(dim, patharr));
-	    }
-	}	
-
-	return sq;
-    }
-
-    public static class SearchQuery {
-
-	public String queryid;
-	public Integer pageSize;
-	public String queryString;
-	
-	public LinkedList<PathFilter> facetfilters;
-	
-	public  class PathFilter {
-	    public String dimension;
-	    public String[] path;
-	    	
-	    PathFilter(String dim, String[] path) {
-		dimension = dim;
-		this.path = path;
-	    }
 	}
 
-	public Integer facetPageSize;
-    }
-	
-    
-    public ByteBuf search(JsonNode json)
-	throws IOException, InterruptedException
-    {
-	// TODO: open the readers once 
-	
-	var indexReader = DirectoryReader.open(_searcher.indexer.dir);
-	var taxoReader = new DirectoryTaxonomyReader(_searcher.indexer.taxdir);
-	var indexSearcher = new IndexSearcher(indexReader);
-	
-	ScoreDoc[] hits = null;
-	ByteBuf bodybuf = Unpooled.directBuffer(8);
+	class PassageReturningFormatter extends PassageFormatter {
+		public Object format(Passage[] passages, String content) {
 
-	try {
-            var byteoutput = new ByteBufOutputStream(bodybuf);
-            var gen = _searcher.mapper.getFactory().createGenerator((OutputStream)byteoutput);      
-            
-            gen.writeStartObject();
 
-	    var searchquery = parseQuery(json);
 
-	    if ( searchquery.queryid.isEmpty() == false) {
-		
-                // Continue a stored query
-                // TODO: clear the queries afterwards
-		
-                var searchstate = searchstates.get(searchquery.queryid);		
-                var docs = indexSearcher.searchAfter(searchstate.scoredoc, searchstate.query, searchquery.pageSize);
-		
-                hits = docs.scoreDocs;
-		
-                searchstate.scoredoc = hits[hits.length - 1];
-                searchstates.put(searchquery.queryid, searchstate);
-		
-                gen.writeStringField("qid", searchquery.queryid);
-                gen.writeStringField("hits", Long.toString(docs.totalHits.value()));
-		
-            } else {
-		
-                // Create a new query with facets
-		
-                var querybuilder = new BooleanQuery.Builder();
-                var analyzer = new StandardAnalyzer();
-                var parser = new QueryParser("uuid", analyzer);
-		
-		// TODO: change to an excluding filter, getting rid of series and subseries
-		
-		querybuilder.add(new TermQuery(new Term("type", "file")), BooleanClause.Occur.FILTER);
+			System.out.println(content.length());
+			return passages;
+		}
+	}
 
-		if (searchquery.queryString.isEmpty() == false) {
-                    querybuilder.add(parser.parse(searchquery.queryString), BooleanClause.Occur.MUST);
+	class HighlightsAsObject extends UnifiedHighlighter {
+
+
+		public HighlightsAsObject(UnifiedHighlighter.Builder builder) {
+			super(builder);
+		}
+
+		// Expose the protected method publicly
+		public UnifiedHighlighter.OffsetSource offsetSource(String field) {
+			return super.getOffsetSource(field);
 		}
 		
-                var query = querybuilder.build();
-                var dq = new DrillDownQuery(_searcher.indexer.fconfig, query);
+		// Expose the protected method publicly
+		public Map<String, Object[]> highlight(
+				String[] fields, 
+				Query query, 
+				ScoreDoc[] scoreDocs, 
+				int[] maxPassages) throws IOException {
 
-		for (var filter : searchquery.facetfilters){
-		    dq.add(filter.dimension, filter.path);
+				// Extract document IDs from ScoreDoc array
+				int[] docIds = new int[scoreDocs.length];
+				for (int i = 0; i < scoreDocs.length; i++) {
+					docIds[i] = scoreDocs[i].doc;
+				}
+
+			return this.highlightFieldsAsObjects(fields, query, docIds, maxPassages);
 		}
-	
-		var result = new DrillSideways(indexSearcher, _searcher.indexer.fconfig, taxoReader).search(dq, searchquery.pageSize);
-                hits = result.hits.scoreDocs;
-		
-                if (hits.length == 0) {
-                    gen.writeNumberField("hits", 0);
-		    
-                } else {
-                    // results; store query and gather facets
-		    
-                    var queryuuid = Generators.timeBasedGenerator().generate();
-		    var searchstate = new SearchState(dq, hits[hits.length - 1]);
-		    
-                    searchstates.put(queryuuid.toString(), searchstate);
-		    		    
-                    gen.writeStringField("qid", queryuuid.toString());
-		    gen.writeNumberField("hits", result.hits.totalHits.value());
-                    gen.writeArrayFieldStart("facets");
+	}
 
-		    // TODO: this is only one facet
-		    
-		    var parents = result.facets.getAllChildren("parents");
-		    
-		    for (var lv : parents.labelValues) {
+	public static SearchQuery parseQuery(JsonNode json) {
+		// Get the query out of the JSON
+
+		var sq = new SearchQuery();
+		var qidnode = json.at("/qid");
+
+		if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
+			sq.queryid = qidnode.asText();
+		} 
+
+		var pagenode = json.at("/pagesize");
+		if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
+
+			// TODO errorhandline
+			sq.pageSize = pagenode.asInt();
+		}
+
+		var querynode = json.at("/query");
+
+		if (!querynode.isMissingNode() && !querynode.isNull() && !querynode.asText().isEmpty()) {
+			sq.queryString = querynode.asText();
+		}
+
+		var facetpagenode = json.at("/facetpagesize");
+		if (!facetpagenode.isMissingNode() && !facetpagenode.isNull() && !facetpagenode.asText().isEmpty()) {
+
+			// TODO errorhandline
+			sq.facetPageSize = facetpagenode.asInt();
+		}
+
+		for (var filter : json.at("/facetfilters")) {
+
+			// TODO: describe what we are doing here
+
+			var dim = "";
+			var path = new LinkedList<String>();
+
+			var elems = filter.elements();
+			while (elems.hasNext()) {
+				var elem = elems.next();
+
+				if (dim.isEmpty()) {
+					dim = elem.asText();
+				} else {
+					path.add(elem.asText());
+				}
+			}
+
+			if (!dim.isEmpty() && path.size() > 0) {
+				var patharr = new String[path.size()];
+				patharr = path.toArray(patharr);
+				sq.facetfilters.add(sq.new PathFilter(dim, patharr));
+			}
+		}
+
+		return sq;
+	}
+
+	public static class SearchQuery {
+
+		public String queryid = "";
+		public Integer pageSize;
+		public String queryString = "";
+
+		public LinkedList<PathFilter> facetfilters = new LinkedList<PathFilter>();
+
+		public class PathFilter {
+			public String dimension;
+			public String[] path;
+
+			PathFilter(String dim, String[] path) {
+				dimension = dim;
+				this.path = path;
+			}
+		}
+
+		public Integer facetPageSize;
+	}
+
+	public ByteBuf search(JsonNode json)
+			throws IOException, InterruptedException {
+
+		TopDocs topdocs = null;
+		Query currentQuery = null;
+		ByteBuf bodybuf = Unpooled.directBuffer(8);
+
+		// TODO Check if the index should be re-opened after a write operation
+
+		try {
+			var byteoutput = new ByteBufOutputStream(bodybuf);
+			var searchquery = parseQuery(json);
+
+			var gen = _searcher.mapper.getFactory().createGenerator((OutputStream) byteoutput);
 			gen.writeStartObject();
-			gen.writeStringField("field", "parents");
-			gen.writeStringField("uuid", lv.label);
-			gen.writeNumberField("count", lv.value.intValue() );
 
-			// TODO: can this be done faster?
-			var res = indexSearcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
-			for (var hit : res.scoreDocs) {
-			    var doc = indexSearcher.storedFields().document(hit.doc);
-			    
-			    var title = doc.get("title");
-			    gen.writeStringField("title", title);
-		       }
+			if (searchquery.queryid.isEmpty() == false) {
+
+				// Continue a stored query
+				// TODO: clear the queries
+
+				var searchstate = searchstates.get(searchquery.queryid);
+				topdocs = indexSearcher.searchAfter(searchstate.doc, searchstate.query, searchquery.pageSize);
+				
+				searchstate.doc = topdocs.scoreDocs[topdocs.scoreDocs.length - 1];
+				searchstates.put(searchquery.queryid, searchstate);
+
+				gen.writeStringField("qid", searchquery.queryid);
+				gen.writeStringField("hits", Long.toString(topdocs.totalHits.value()));
+
+			} else {
+
+				// Create a new query with facets
+
+				var querybuilder = new BooleanQuery.Builder();				
+				var standardparser = new StandardQueryParser(analyzer);
+
+				// TODO: Generalize this from the config file: what types to output in the query, if not all?
+
+				querybuilder.add(new TermQuery(new Term("type", "file")), BooleanClause.Occur.FILTER);
+
+				// TODO: specifiy the default field in the config file, and use that here instead of hardcoding "content"
+
+				if (searchquery.queryString.isEmpty() == false) {
+					querybuilder.add(standardparser.parse(searchquery.queryString, "content"), BooleanClause.Occur.MUST);
+				}
+
+				var query = querybuilder.build();
+				var dq = new DrillDownQuery(_searcher.indexer.fconfig, query);
+
+				for (var filter : searchquery.facetfilters) {
+					dq.add(filter.dimension, filter.path);
+				}
+
+				var result = new DrillSideways(indexSearcher, _searcher.indexer.fconfig, taxoReader).search(dq,
+						searchquery.pageSize);
+
+				
+				topdocs = result.hits;
+				currentQuery = dq;
+
+				if (topdocs.scoreDocs.length == 0) {
+					gen.writeNumberField("hits", 0);
+				} else {
+					// results; store query and gather facets
+
+					var queryuuid = Generators.timeBasedGenerator().generate();
+					var searchstate = new SearchState(currentQuery, topdocs.scoreDocs[topdocs.scoreDocs.length - 1]);
+
+					searchstates.put(queryuuid.toString(), searchstate);
+
+					gen.writeStringField("qid", queryuuid.toString());
+					gen.writeNumberField("hits", topdocs.totalHits.value());
+
+					gen.writeArrayFieldStart("facets");
+
+					// TODO: this is only one facet. Grab the facet fields from the config and loop over them here
+
+					var parents = result.facets.getAllChildren("parents");
+
+					// TODO: this is a specific kind of hierarchical facet: one where the nodes are part of the index
+					// Specify in the config file
+
+					for (var lv : parents.labelValues) {
+						gen.writeStartObject();
+						gen.writeStringField("field", "parents");
+						gen.writeStringField("uuid", lv.label);
+						gen.writeNumberField("count", lv.value.intValue());
+
+						// TODO: can this be done faster with a more direct Lucene lookup?
+						// TODO: what should be specified in the config? The link field and the label field(s)
+
+						var res = indexSearcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
+						for (var hit : res.scoreDocs) {
+							var doc = indexSearcher.storedFields().document(hit.doc);
+							var title = doc.get("title");
+							gen.writeStringField("title", title);
+						}
+						gen.writeEndObject();
+					}
+					gen.writeEndArray();
+				}
+			}
+
+			if (topdocs.scoreDocs.length > 0) {
+
+				// Document result rendering. This is used for new and continued queries.
+				// TODO: move stuff to the config file
+
+				var highlights = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs, new int[] { 3 });
+
+				var source = highlighter.offsetSource("content");
+				System.out.println(source.toString());
+				
+				gen.writeArrayFieldStart("docs");
+
+				for (var i = 0; i < topdocs.scoreDocs.length; i++) {
+					var hit = topdocs.scoreDocs[i];
+					var doc = indexSearcher.storedFields().document(hit.doc);
+
+					var title = doc.get("title");
+					var uuid = doc.get("uuid");
+
+					gen.writeString(title);
+
+					//var highlight = highlights.get("content");
+					//if (highlight != null ) {
+
+
+					//}
+				}
+				gen.writeEndArray();
+			}
+
 			gen.writeEndObject();
-		    }
-		    
-                    gen.writeEndArray();
-                }
-            }
-	    
-            if (hits.length > 0) {
-                gen.writeArrayFieldStart("docs");
-		
-		for (var hit : hits) {
-		    var doc = indexSearcher.storedFields().document(hit.doc);
-		    var title = doc.get("title");
-		    var uuid = doc.get("uuid");
-		  
-					
-		    gen.writeString(title);
+			gen.close();
 
-		    // TODO: highlights
+			// TODO: is this correct here?
+			byteoutput.close();
 
+			return bodybuf;
+
+		} catch (Exception e) {
+			System.out.println(e.toString());
+			System.out.println(Arrays.toString(e.getStackTrace()));
+			return bodybuf;
 		}
-		gen.writeEndArray();
-            }
-	    
-            gen.writeEndObject();
-            gen.close();
-
-	    // TODO: is this correct here?
-	    byteoutput.close();
-
-	    return bodybuf;
-	    
-        } catch (Exception e) {
-            System.out.println(e.toString());
-            System.out.println(Arrays.toString(e.getStackTrace()));
-	    return bodybuf;
-        } finally {
-	    IOUtils.close(indexReader, taxoReader);
 	}
-    }
 }

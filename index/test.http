@@ -1,0 +1,9 @@
+PUT http://localhost:8080/query HTTP/1.1
+Content-Type: "application/json"
+
+{
+    "pagesize": 20,
+    "query": "de AND boot",
+    "facetpagesize": 10,
+    "facetfilters": []
+}

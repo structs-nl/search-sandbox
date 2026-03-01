@@ -9,7 +9,6 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
 
-import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -38,192 +37,176 @@ import java.nio.file.Path;
 import org.apache.commons.cli.*;
 
 public class Searcher {
-    
-    // This class does the following
-    // - handle the command line args (serve and index)
-    // - start the webserver
-    // - handles the http requests (/query and /index)
-    // - handle config and logging (currently not used)
-    
-    // The Indexer and Querier contain the data / app specific code. This can be
-    // generalized to abstract classes and app specific instances
-    
-    protected ObjectMapper mapper = new ObjectMapper();
-    
-    protected JsonFactory factory;
-    protected Indexer indexer;
-    protected Querier querier;
-    protected String datapath;
-    protected JsonNode config;
-    private Path configpath;
-    protected BufferedWriter logwriter;
-    
-    public Searcher(String[] args)
-	throws URISyntaxException, IOException, InterruptedException, ExecutionException,
-	       org.apache.lucene.queryparser.classic.ParseException, ParseException {
-	
-	Runtime.getRuntime().addShutdownHook(new Thread() {
-		public void run() {
-		    try {
-			System.out.println("\nClose index");
-			indexer.close();
-			System.out.println("Bye!");
-		    } catch (Exception e) {
-			System.out.println(e.getMessage());
-		    }
+
+	// This class does the following
+	// - handle the command line args (serve and index)
+	// - start the webserver
+	// - handles the http requests (/query and /index)
+	// - handle config and logging (currently not used)
+
+	// The Indexer and Querier contain the data / app specific code. This can be
+	// generalized to abstract classes and app specific instances
+
+	protected ObjectMapper mapper = new ObjectMapper();
+
+	protected JsonFactory factory;
+	protected Indexer indexer;
+	protected Querier querier;
+	protected String datapath;
+	protected JsonNode config;
+	private Path configpath;
+	protected BufferedWriter logwriter;
+
+	public Searcher(String[] args)
+			throws URISyntaxException, IOException, InterruptedException, ExecutionException,
+			org.apache.lucene.queryparser.classic.ParseException, ParseException {
+
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			public void run() {
+				try {
+					System.out.println("\nClose index");
+					indexer.close();
+					System.out.println("Bye!");
+				} catch (Exception e) {
+					System.out.println(e.getMessage());
+				}
+			}
+		});
+
+		Options options = new Options();
+		options.addOption("path", true, "Data path");
+		options.addOption("serve", true, "Start server from port");
+		options.addOption("index", true, "index file");
+
+		CommandLineParser parser = new DefaultParser();
+		CommandLine cmd = parser.parse(options, args);
+
+		if (cmd.hasOption("path")) {
+			datapath = cmd.getOptionValue("path");
+		} else {
+			return;
 		}
-	    });
-	
-	Options options = new Options();
-	options.addOption("path", true, "Data path");
-	options.addOption("serve", true, "Start server from port");
-	options.addOption("index", true, "index file");
-	
-	CommandLineParser parser = new DefaultParser();
-	CommandLine cmd = parser.parse(options, args);
-	
-	if (cmd.hasOption("path")) {
-	    datapath = cmd.getOptionValue("path");
-	} else {
-	    return;
-	}
-	
-	// readConfig();
-	
-	// File file = new File(datapath + "/log.txt");
-	// if (!file.exists())
-	// file.createNewFile();
-	
-	// FileWriter fw = new FileWriter(file, true);
-	// logwriter = new BufferedWriter(fw);
-	
-	factory = new JsonFactory();
-	indexer = new Indexer(datapath);
-	querier = new Querier(this);
-	
-	if (cmd.hasOption("serve")) {
 
-	    var port = cmd.getOptionValue("serve");
-	    var bossGroup = new NioEventLoopGroup(1);
-	    var workerGroup = new NioEventLoopGroup();
-	    
-	    try {
-		
-		var portnr = Integer.parseInt(port);
-		
-		var b = new ServerBootstrap();
-		b.option(ChannelOption.SO_BACKLOG, 1024);
-		b.group(bossGroup, workerGroup)
-		    .channel(NioServerSocketChannel.class)
-		    .handler(new LoggingHandler(LogLevel.INFO))
-		    .childHandler(new HTTPInitializer());
-		
-		var ch = b.bind(portnr).sync().channel();
-		
-		ch.closeFuture().sync();
-	    } catch (InterruptedException e) {
-		e.printStackTrace();
-	    } finally {
-		System.out.println("Stop!");
-		bossGroup.shutdownGracefully();
-		workerGroup.shutdownGracefully();
-	    }
-	    
-	}
+		// readConfig();
 
-	if (cmd.hasOption("index")) {
-	    String path = cmd.getOptionValue("index");
-	    try {
-		Path indexfile = Paths.get(path);
-		System.out.print(path);
-		if (indexfile.toFile().exists()) {
-		    indexer.index(mapper.readTree(indexfile.toFile()));
+		// File file = new File(datapath + "/log.txt");
+		// if (!file.exists())
+		// file.createNewFile();
+
+		// FileWriter fw = new FileWriter(file, true);
+		// logwriter = new BufferedWriter(fw);
+
+		factory = new JsonFactory();
+		indexer = new Indexer(datapath);
+		querier = new Querier(this);
+
+		if (cmd.hasOption("serve")) {
+
+			var port = cmd.getOptionValue("serve");
+			var bossGroup = new NioEventLoopGroup(1);
+			var workerGroup = new NioEventLoopGroup();
+
+			try {
+
+				var portnr = Integer.parseInt(port);
+
+				var b = new ServerBootstrap();
+				b.option(ChannelOption.SO_BACKLOG, 1024);
+				b.group(bossGroup, workerGroup)
+						.channel(NioServerSocketChannel.class)
+						.handler(new LoggingHandler(LogLevel.INFO))
+						.childHandler(new HTTPInitializer());
+
+				var ch = b.bind(portnr).sync().channel();
+
+				ch.closeFuture().sync();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				System.out.println("Stop!");
+				querier.close();
+				bossGroup.shutdownGracefully();
+				workerGroup.shutdownGracefully();
+			}
 		}
-		
-	    } catch (Exception e) {
-		
-	    }
-	}
-	
-	System.exit(0);
-    }
-    
-    protected void saveConfig()
-	throws FileNotFoundException, IOException {
-	OutputStream jsonout = new FileOutputStream(configpath.toFile());
-	JsonGenerator gen = factory.createGenerator(jsonout);
-	
-	mapper.writerWithDefaultPrettyPrinter().writeValue(gen, config);
-	mapper.writeTree(gen, config);
-	gen.close();
-    }
-    
-    protected void readConfig()
-	throws FileNotFoundException, IOException {
-	configpath = Paths.get(datapath + "/config.json");
-	if (configpath.toFile().exists()) {
-	    config = mapper.readTree(configpath.toFile());
-	} else
-	    config = mapper.createObjectNode();
-    }
-    
-    protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
-	protected void initChannel(SocketChannel socketChannel) throws Exception {
-	    ChannelPipeline pipeline = socketChannel.pipeline();
-	    pipeline.addLast("codec", new HttpServerCodec());
-	    pipeline.addLast("aggregator", new HttpObjectAggregator(Short.MAX_VALUE));
-	    pipeline.addLast("chunked", new ChunkedWriteHandler());
-	    // pipeline.addLast("compressor", new HttpContentCompressor());
-	    pipeline.addLast("httpHandler", new HttpServerHandler());
-	}
-    }
 
-    protected class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-	@Override
-	public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
-	    throws Exception {
-	    if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
-		
-		HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-		response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-		response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
-		ctx.write(response);
-		
-		ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-		lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-		
-	    } else if (httpRequest.method().equals(HttpMethod.PUT)) {
-		if (httpRequest.uri().startsWith("/query")) {
-		    
-		    var data = httpRequest.content();
-		    var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
-		    
-		    var bodybuf = querier.search(query, ctx, httpRequest);
+		if (cmd.hasOption("index")) {
+			String path = cmd.getOptionValue("index");
+			try {
+				Path indexfile = Paths.get(path);
+				System.out.print(path);
+				if (indexfile.toFile().exists()) {
+					indexer.index(mapper.readTree(indexfile.toFile()));
+				}
 
-		    var response = new DefaultHttpResponse(HTTP_1_1, OK);
-		    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-		    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-		    response.headers().set(HttpHeaderNames.CONTENT_LENGTH, bodybuf.readableBytes());
+			} catch (Exception e) {
 
-		    if (HttpUtil.isKeepAlive(httpRequest))
-			response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-	    
-		    ctx.write(response);
-		    ctx.write(bodybuf);
-	    
-		    var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-		    if (!HttpUtil.isKeepAlive(httpRequest))
-			lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-		    
-		    
-		} else if (httpRequest.uri().startsWith("/ingest")) {
-		    
+			}
 		}
-	    }
+
+		System.exit(0);
 	}
-    }
-    
-    public static void main(String[] args) throws Exception {
-	new Searcher(args);
-    }
+
+
+	protected void readConfig()
+			throws FileNotFoundException, IOException {
+		configpath = Paths.get(datapath + "/config.json");
+		if (configpath.toFile().exists()) {
+			config = mapper.readTree(configpath.toFile());
+		} else
+			config = mapper.createObjectNode();
+	}
+
+	protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
+		protected void initChannel(SocketChannel socketChannel) throws Exception {
+			ChannelPipeline pipeline = socketChannel.pipeline();
+			pipeline.addLast("codec", new HttpServerCodec());
+			pipeline.addLast("aggregator", new HttpObjectAggregator(Short.MAX_VALUE));
+			pipeline.addLast("compressor", new HttpContentCompressor());
+			pipeline.addLast("httpHandler", new HttpServerHandler());
+		}
+	}
+
+	protected class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+		@Override
+		public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
+				throws Exception {
+			if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
+
+				HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+				response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+				response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
+				ctx.write(response);
+
+				ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+				lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+
+			} else if (httpRequest.method().equals(HttpMethod.PUT)) {
+				if (httpRequest.uri().startsWith("/query")) {
+
+					var data = httpRequest.content();
+					var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+
+					var bodybuf = querier.search(query);
+
+					var response = new DefaultHttpResponse(HTTP_1_1, OK);
+					response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+					response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+					ctx.write(response);
+					// wrap the ByteBuf in HttpContent so the compressor can intercept it
+					ctx.write(new DefaultHttpContent(bodybuf));
+
+					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+
+				} else if (httpRequest.uri().startsWith("/ingest")) {
+
+				}
+			}
+		}
+	}
+
+	public static void main(String[] args) throws Exception {
+		new Searcher(args);
+	}
 }
