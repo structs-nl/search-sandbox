@@ -1,0 +1,30 @@
+digraph tokens {
+  graph [ fontsize=30 labelloc="t" label="" splines=true overlap=false rankdir = "LR" ];
+  // A2 paper size
+  size = "34.4,16.5";
+  edge [ fontname="Helvetica" fontcolor="red" color="#606060" ]
+  node [ style="filled" fillcolor="#e8e8f0" shape="Mrecord" fontname="Helvetica" ]
+
+  0 [label="0"]
+  -1 [shape=point color=white]
+  -1 -> 0 []
+  0 -> 1 [ label="this / 0-4"]
+  1 [label="1"]
+  1 -> 2 [ label="section1 / 5-7"]
+  1 -> 2 [ label="is / 5-7"]
+  2 [label="2"]
+  2 -> 4 [ label="section3 / 8-14"]
+  2 -> 3 [ label="a / 8-9"]
+  3 [label="3"]
+  3 -> 4 [ label="test / 10-14"]
+  4 [label="4"]
+  4 -> 5 [ label="of / 15-17"]
+  5 [label="5"]
+  5 -> 6 [ label="the / 18-21"]
+  6 [label="6"]
+  6 -> 7 [ label="tokenization / 22-34"]
+  7 [label="7"]
+  7 -> 8 [ label="process / 35-42"]
+  -2 [shape=point color=white]
+  8 -> -2 []
+}

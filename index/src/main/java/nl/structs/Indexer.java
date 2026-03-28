@@ -1,6 +1,7 @@
 package nl.structs;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.nio.file.Paths;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -12,7 +13,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.core.LowerCaseFilter;
+
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
+
+import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
+import org.apache.lucene.analysis.synonym.SynonymMap;
+import org.apache.lucene.util.CharsRef;
 
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
@@ -41,6 +51,9 @@ import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.facet.FacetField;
 
+import org.apache.lucene.tests.analysis.TokenStreamToDot;
+import java.io.PrintWriter;
+
 class Indexer {
 
     public Directory dir;
@@ -50,17 +63,23 @@ class Indexer {
     private IndexWriterConfig iwc;
     private IndexWriter iw;
     private DirectoryTaxonomyWriter dtw;
+    private Analyzer analyzer;
 
     private LinkedList<DateTimeFormatter> formatters;
     private HttpClient httpClient;
     private ObjectMapper objectMapper;
 
+    private SynonymMap synonymMap;
+    private SynonymMap.Builder synonymBuilder;
+
     Searcher Searcher;
+
 
     public static final FieldType TextFieldType = new FieldType();
 
     // The indexer is custom code, iterating a file specified on the command line and doing some data operations, including lookups
     // The config and data should be separated. The data gathering should be external and is already done in another script
+    // The config of the indexer should be part of the Querier class
 
     static {
         TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
@@ -69,6 +88,7 @@ class Indexer {
         TextFieldType.setStoreTermVectors(true);
         TextFieldType.setStoreTermVectorOffsets(true);
         TextFieldType.setStoreTermVectorPositions(true);
+        TextFieldType.setStoreTermVectorPayloads(true);
         TextFieldType.freeze();
     }
 
@@ -86,7 +106,9 @@ class Indexer {
         dir = FSDirectory.open(Paths.get(basepath + "/index/"));
         taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
 
-        var analyzer = new StandardAnalyzer();
+        //analyzer = new StandardAnalyzer();
+        analyzer = new CustomAnalyzer();
+
         iwc = new IndexWriterConfig(analyzer);
         iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
         iwc.setRAMBufferSizeMB(256.0);
@@ -97,6 +119,41 @@ class Indexer {
         httpClient = HttpClient.newHttpClient();
         objectMapper = new ObjectMapper();
 
+        // synonym test
+
+        synonymBuilder = new SynonymMap.Builder(true);
+        synonymBuilder.add(new CharsRef("snaphanen"), new CharsRef("concept00001"), true);
+        synonymBuilder.add(new CharsRef("axel\u0000anthonij\u0000rosenquest"), new CharsRef("person00001"), true);
+        
+        synonymMap = synonymBuilder.build();
+    }
+
+    class CustomAnalyzer extends Analyzer {
+
+        // Same as StandardAnalyzer, only with the SynonymFilter and the PayloadTokenFilter added
+
+        @Override
+        protected TokenStreamComponents createComponents(String fieldName) {
+
+            final StandardTokenizer src = new StandardTokenizer();
+            src.setMaxTokenLength(255);
+            TokenStream tok = new LowerCaseFilter(src);
+
+            tok = new SynonymGraphFilter(tok, synonymMap, true);
+            // This filter encodes the length of the token in the payload
+            tok = new PayloadTokenLengthFilter(tok);
+
+            return new TokenStreamComponents(
+            r -> {
+                src.setMaxTokenLength(255);
+                src.setReader(r);
+            }, tok);
+        }
+
+        @Override
+        protected TokenStream normalize(String fieldName, TokenStream in) {
+            return new LowerCaseFilter(in);
+        }
     }
 
     public void index(JsonNode json)
@@ -119,24 +176,21 @@ class Indexer {
             JsonNode type = doc.at("/type");
             JsonNode texturl = doc.at("/texturl");
 
-            String fullText = null;
-            if (texturl != null && !texturl.isNull() && texturl.asText() != null && !texturl.asText().isEmpty())
-                fullText = resolveAndParseJson(texturl.asText());
-
             System.out.println(texturl.asText());
-
             JsonNode parents = doc.at("/parents");
 
             Document luceneDoc = new Document();
 
             luceneDoc.add(new StringField("uuid", uuid.asText(), Field.Store.YES));
             luceneDoc.add(new StringField("type", type.asText(), Field.Store.YES));
-
-            luceneDoc.add(new Field("title", title.asText(), TextFieldType));
-
-            if (fullText != null) {
+                        
+            if (texturl != null && !texturl.isNull() && texturl.asText() != null && !texturl.asText().isEmpty()) {
+                
+                var fullText = resolveAndParseJson(texturl.asText());
                 luceneDoc.add(new Field("content", fullText, TextFieldType));
             }
+
+            luceneDoc.add(new Field("title", title.asText(), TextFieldType));
 
             var pariter = parents.elements();
             var parpath = new LinkedList<String>();
@@ -170,7 +224,6 @@ class Indexer {
         // luceneDoc.add(new FacetField(fieldname, y, m, d));
 
     }
-
 
     private String resolveAndParseJson(String urlString) {
         try {

@@ -1,0 +1,23 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "TokenizeTest",
+            "request": "launch",
+            "mainClass": "nl.structs.TokenizeTest",
+            "projectName": "Searcher"
+        },
+        {
+            "type": "java",
+            "name": "Debug TokenizeTest",
+            "request": "launch",
+            "mainClass": "nl.structs.Searcher",
+            "args": [
+                "-test"
+            ],
+            "projectName": "Searcher",
+            "console": "integratedTerminal"
+        }
+    ]
+}

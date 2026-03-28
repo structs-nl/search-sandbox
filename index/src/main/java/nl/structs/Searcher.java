@@ -20,13 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ExecutionException;
 import java.net.URISyntaxException;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.FileNotFoundException;
 import java.io.BufferedWriter;
 
@@ -187,6 +184,7 @@ public class Searcher {
 					var data = httpRequest.content();
 					var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
 
+					// TODO: generalize the output format of the searcher. Now it's Netty specific
 					var bodybuf = querier.search(query);
 
 					var response = new DefaultHttpResponse(HTTP_1_1, OK);
