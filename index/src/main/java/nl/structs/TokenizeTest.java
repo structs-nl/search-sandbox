@@ -17,13 +17,13 @@ import org.apache.lucene.analysis.tokenattributes.PositionLengthAttribute;
 import org.apache.lucene.tests.analysis.TokenStreamToDot;
 
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
+
+import nl.structs.AnnotateFilter.Annotation;
 
 public class TokenizeTest {
     TokenizeTest() {
-        Analyzer analyzer = new StandardAnalyzer();
+        Analyzer analyzer = new StandardAnalyzer() ;
         String text = "This is a test of the tokenization process";
         try {
             var tokenStream = analyzer.tokenStream("field", text);
@@ -50,11 +50,11 @@ public class TokenizeTest {
 
             tokenStream = new SynonymGraphFilter(tokenStream, synonymMap, true);
 
-            var annotations = new LinkedList<Annotation>();
-            annotations.add(new Annotation(15, 20, "concept"));
+            var annotations = new LinkedList<AnnotateFilter.Annotation>();
+            annotations.add(new AnnotateFilter.Annotation(15, 20, "concept"));
 
-            tokenStream = new TestFilter(tokenStream, annotations);
 
+            
             outputDot(tokenStream);
 
             //printTokenStream(tokenStream);
@@ -93,65 +93,4 @@ public class TokenizeTest {
         tokenStream.close();
     }
 
-    public class Annotation {
-        int startOffset;
-        int endOffset;
-        String annotation;
-
-        public Annotation(int startOffset, int endOffset, String annotation) {
-            this.startOffset = startOffset;
-            this.endOffset = endOffset;
-            this.annotation = annotation;
-        }
-    }
-
-    class TestFilter extends TokenFilter {
-
-        private OffsetAttribute offsetAttribute;
-        private PositionIncrementAttribute positionIncrementAttribute;
-        private PositionLengthAttribute positionLengthAttribute;
-        private CharTermAttribute termAttribute;
-
-        private List<Annotation> annolist;
-
-        protected TestFilter(TokenStream input, List<Annotation> annotations) {
-            super(input);
-
-            // TODO: SortedSet or NavigableSet seem more appropriate for the annotation collection
-            // TODO: sub token annotations can use the correct offsets in the original text
-
-            annolist = annotations;
-
-            offsetAttribute = input.getAttribute(OffsetAttribute.class);
-            positionIncrementAttribute = input.getAttribute(PositionIncrementAttribute.class);
-            positionLengthAttribute = input.getAttribute(PositionLengthAttribute.class);
-            termAttribute = input.getAttribute(CharTermAttribute.class);
-        }
-
-        @Override
-        public boolean incrementToken() throws java.io.IOException {
-
-            if (input.incrementToken()){
-
-                var startOffset = offsetAttribute.startOffset();
-                var endOffset = offsetAttribute.endOffset();
-
-                // find the annotations that start at the current token (lookup)
-
-                // determine the end: lookahead: input / output buffers
-
-                System.out.println("AnnotationFilter:"
-                    + " offset: " + offsetAttribute.startOffset() + "-" + offsetAttribute.endOffset()
-                    + "\tpos incr: " + positionIncrementAttribute.getPositionIncrement()
-                    + "\tpos len: " + positionLengthAttribute.getPositionLength()
-                    + "\tterm: " + termAttribute.toString() 
-            
-                );
-                return true;
-            } else {
-                return false;
-            }
-        }
-        
-    }
 }
