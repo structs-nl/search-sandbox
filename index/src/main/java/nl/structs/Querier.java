@@ -8,6 +8,8 @@ import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.apache.lucene.util.BytesRef;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,19 +41,17 @@ import org.apache.lucene.search.TopDocs;
 
 import org.apache.lucene.search.uhighlight.PassageFormatter;
 import org.apache.lucene.search.uhighlight.Passage;
+import org.apache.lucene.facet.FacetsConfig;
 
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.index.Term;
-import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
-import org.apache.lucene.tests.analysis.TokenStreamToDot;
-import java.io.PrintWriter;
+import org.apache.lucene.store.FSDirectory;
 
 public class Querier {
 
-	protected Searcher _searcher;
+	protected ObjectMapper mapper;
+	protected FacetsConfig fconfig;
 	protected IndexSearcher indexSearcher;
 	protected DirectoryReader indexReader;
 	protected Analyzer analyzer;
@@ -59,12 +59,13 @@ public class Querier {
 	protected DirectoryTaxonomyReader taxoReader;
 	protected HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
 
-	public Querier(Searcher searcher)
+	public Querier(FSDirectory indexdir, FSDirectory taxdir, ObjectMapper mapper, FacetsConfig fconfig)
 			throws IOException, InterruptedException {
 
-		_searcher = searcher;
-		indexReader = DirectoryReader.open(_searcher.indexer.dir);
-		taxoReader = new DirectoryTaxonomyReader(_searcher.indexer.taxdir);
+		this.mapper = mapper;
+		this.fconfig = fconfig;
+		indexReader = DirectoryReader.open(indexdir);
+		taxoReader = new DirectoryTaxonomyReader(taxdir);
 		indexSearcher = new IndexSearcher(indexReader);
 		analyzer = new StandardAnalyzer();
 
@@ -240,7 +241,7 @@ public class Querier {
 			var byteoutput = new ByteBufOutputStream(bodybuf);
 			var searchquery = parseQuery(json);
 
-			var gen = _searcher.mapper.getFactory().createGenerator((OutputStream) byteoutput);
+			var gen = mapper.getFactory().createGenerator((OutputStream) byteoutput);
 			gen.writeStartObject();
 
 			if (searchquery.queryid.isEmpty() == false) {
@@ -275,13 +276,13 @@ public class Querier {
 				}
 
 				var query = querybuilder.build();
-				var dq = new DrillDownQuery(_searcher.indexer.fconfig, query);
+				var dq = new DrillDownQuery(fconfig, query);
 
 				for (var filter : searchquery.facetfilters) {
 					dq.add(filter.dimension, filter.path);
 				}
 
-				var result = new DrillSideways(indexSearcher, _searcher.indexer.fconfig, taxoReader).search(dq,
+				var result = new DrillSideways(indexSearcher, fconfig, taxoReader).search(dq,
 						searchquery.pageSize);
 
 				

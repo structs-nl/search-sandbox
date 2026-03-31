@@ -72,9 +72,6 @@ class Indexer {
     private SynonymMap synonymMap;
     private SynonymMap.Builder synonymBuilder;
 
-    Searcher Searcher;
-
-
     public static final FieldType TextFieldType = new FieldType();
 
     // The indexer is custom code, iterating a file specified on the command line and doing some data operations, including lookups
@@ -90,21 +87,18 @@ class Indexer {
         TextFieldType.setStoreTermVectorPositions(true);
         TextFieldType.setStoreTermVectorPayloads(true);
         TextFieldType.freeze();
-    }
+    };
 
-    Indexer(String basepath) throws IOException {
+    Indexer(FSDirectory dir, FSDirectory taxdir) throws IOException {
+
 
         fconfig = new FacetsConfig();
-
-        // A few config settings that are data-specific
 
         fconfig.setHierarchical("parents", true);
         fconfig.setMultiValued("parents", true);
         fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
         fconfig.setRequireDimCount("parents", true);
 
-        dir = FSDirectory.open(Paths.get(basepath + "/index/"));
-        taxdir = FSDirectory.open(Paths.get(basepath + "/tax/"));
 
         //analyzer = new StandardAnalyzer();
         analyzer = new CustomAnalyzer();

@@ -19,11 +19,11 @@ https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/
 java -jar ./target/Searcher-0.8.jar -path ./data -index ../transform/output.json
 java -jar ./target/Searcher-0.8.jar -path ./data -serve 8080
 
-mvn exec:java -Dexec.mainClass="nl.structs.Searcher" -Dexec.args="-path ./data -serve 8080"
+mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -serve 8080"
 mvn exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
 
-mvn exec:java -Dexec.mainClass="nl.structs.Searcher" -Dexec.args="-path ./data -index ./index_test.json"
-mvn exec:java -Dexec.mainClass="nl.structs.Searcher" -Dexec.args="-path ./data -index ./output.json"
+mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -index ./index_test.json"
+mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -index ./output.json"
 mvn exec:java -Dexec.mainClass="org.apache.lucene.luke.app.desktop.LukeMain"
 
 

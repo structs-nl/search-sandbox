@@ -4,8 +4,6 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
-import org.apache.lucene.analysis.TokenFilter;
-import org.apache.lucene.analysis.core.FlattenGraphFilter;
 import org.apache.lucene.analysis.synonym.SynonymMap;
 import org.apache.lucene.util.CharsRef;
 
@@ -18,8 +16,6 @@ import org.apache.lucene.tests.analysis.TokenStreamToDot;
 
 import java.io.PrintWriter;
 import java.util.LinkedList;
-
-import nl.structs.AnnotateFilter.Annotation;
 
 public class TokenizeTest {
     TokenizeTest() {

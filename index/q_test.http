@@ -11,15 +11,15 @@ Content-Type: "application/json"
 
     //"query": "fn:containedBy(Anthonij fn:phrase(Axel Anthonij Rosenquest))",
    // "query": "fn:containedBy(anthonij person00001)",
+
     "query": "fn:fuzzyTerm(anthonij 2 1000)",
 
-    //"query": "[Ant TO Anthonij]",
-    //"query": "fn:wildcard(paard*)",
-
+    // "query": "[Ant TO Anthonij]",
+    // "query": "fn:wildcard(paard*)",
 
     // "query": "\"person00001 concept00001\"~115",
-    //"query": "\"balinees batavia\"~100",
-    //"query": "fn:maxgaps(10 fn:ordered(radja batavia))",
+    // "query": "\"balinees batavia\"~100",
+    // "query": "fn:maxgaps(10 fn:ordered(radja batavia))",
 
     "facetpagesize": 10,
     "facetfilters": []

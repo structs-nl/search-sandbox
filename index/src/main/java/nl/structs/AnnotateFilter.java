@@ -50,7 +50,6 @@ public final class AnnotateFilter extends TokenFilter {
 
   // For testing:
   private int captureCount;
-
   private boolean liveToken;
 
   // True once the input TokenStream is exhausted:
@@ -58,7 +57,6 @@ public final class AnnotateFilter extends TokenFilter {
 
   private int lookaheadNextRead;
   private int lookaheadNextWrite;
-
 
   public static class Annotation {
     public int startOffset;
@@ -419,18 +417,23 @@ public final class AnnotateFilter extends TokenFilter {
 
     for (int i = 0; i < matches.size(); i++) {
 
+      // 1: output the match
       var token = matches.get(i);
       outputBuffer.add(token);
 
+      // 2: output the tokens until (<) the next match or the end of the match
+
+      int untilToken;
+
       if (i< matches.size()){
+        // not the last match. get the next one
+        var nextMatch = matches.get(i+1);
+        untilToken = nextMatch.startPos;
 
+      } else {
+        untilToken = matchLength;
       }
-
-
-      // 2: output the tokens until (<) the next match to the output buffer
-
-      // We don't have the information we need
-
+    
       //BufferedInputToken token = lookahead.get(lookaheadNextRead);
       // outputBuffer.add( new BufferedOutputToken(token.state, token.term.toString(), startNode, inputEndNode));
 

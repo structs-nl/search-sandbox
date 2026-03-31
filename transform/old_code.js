@@ -27,9 +27,6 @@ const getFileTxt = async (id, client) => {
 }
 
 
-
-
-
 const outputDot = (filename, list) => {
     
     const wrap = x => "\"" + x + "\""

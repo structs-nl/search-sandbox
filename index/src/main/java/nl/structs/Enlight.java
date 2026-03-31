@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.ExecutionException;
 import java.net.URISyntaxException;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.IOException;
@@ -32,8 +31,20 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 
 import org.apache.commons.cli.*;
+import org.apache.lucene.document.FieldType;
+import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
+import org.apache.lucene.index.IndexOptions;
+import org.apache.lucene.store.FSDirectory;
 
-public class Searcher {
+
+import org.apache.lucene.document.Field;
+
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.facet.FacetField;
+
+public class Enlight {
 
 	// This class does the following
 	// - handle the command line args (serve and index)
@@ -46,15 +57,16 @@ public class Searcher {
 
 	protected ObjectMapper mapper = new ObjectMapper();
 
-	protected JsonFactory factory;
 	protected Indexer indexer;
 	protected Querier querier;
 	protected String datapath;
+	protected FSDirectory indexdir;
+	protected FSDirectory taxdir;
 	protected JsonNode config;
 	private Path configpath;
 	protected BufferedWriter logwriter;
 
-	public Searcher(String[] args)
+	public Enlight(String[] args)
 			throws URISyntaxException, IOException, InterruptedException, ExecutionException,
 			org.apache.lucene.queryparser.classic.ParseException, ParseException {
 
@@ -75,11 +87,15 @@ public class Searcher {
 		options.addOption("serve", true, "Start server from port");
 		options.addOption("index", true, "index file");
 
+		// TODO: add a readonly option. This will disable ingesting
+
 		CommandLineParser parser = new DefaultParser();
 		CommandLine cmd = parser.parse(options, args);
 
 		if (cmd.hasOption("path")) {
 			datapath = cmd.getOptionValue("path");
+			indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
+        	taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
 		} else {
 			return;
 		}
@@ -93,9 +109,10 @@ public class Searcher {
 		// FileWriter fw = new FileWriter(file, true);
 		// logwriter = new BufferedWriter(fw);
 
-		factory = new JsonFactory();
-		indexer = new Indexer(datapath);
-		querier = new Querier(this);
+        // A few config settings that are data-specific. How do do this in a config file?
+		
+		indexer = new Indexer(indexdir, taxdir);
+		querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
 
 		if (cmd.hasOption("serve")) {
 
@@ -126,6 +143,9 @@ public class Searcher {
 				workerGroup.shutdownGracefully();
 			}
 		}
+
+		// Remove the index option. Work with ingest via the http server
+
 
 		if (cmd.hasOption("index")) {
 			String path = cmd.getOptionValue("index");
@@ -205,6 +225,6 @@ public class Searcher {
 	}
 
 	public static void main(String[] args) throws Exception {
-		new Searcher(args);
+		new Enlight(args);
 	}
 }
