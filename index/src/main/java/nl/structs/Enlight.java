@@ -16,6 +16,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.net.URISyntaxException;
@@ -31,18 +32,7 @@ import java.nio.file.Paths;
 import java.nio.file.Path;
 
 import org.apache.commons.cli.*;
-import org.apache.lucene.document.FieldType;
-import org.apache.lucene.facet.FacetsConfig;
-import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
-import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.store.FSDirectory;
-
-
-import org.apache.lucene.document.Field;
-
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
-import org.apache.lucene.facet.FacetField;
 
 public class Enlight {
 
@@ -100,7 +90,7 @@ public class Enlight {
 			return;
 		}
 
-		// readConfig();
+		readConfig();
 
 		// File file = new File(datapath + "/log.txt");
 		// if (!file.exists())
@@ -167,11 +157,11 @@ public class Enlight {
 
 	protected void readConfig()
 			throws FileNotFoundException, IOException {
-		configpath = Paths.get(datapath + "/config.json");
+		configpath = Paths.get(datapath + "/config.yaml");
+		ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
 		if (configpath.toFile().exists()) {
-			config = mapper.readTree(configpath.toFile());
-		} else
-			config = mapper.createObjectNode();
+			config = yamlMapper.readTree(configpath.toFile());
+		}
 	}
 
 	protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {

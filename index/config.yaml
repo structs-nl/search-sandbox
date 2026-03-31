@@ -1,0 +1,24 @@
+status: draft! not used yet
+dataPath: ./data
+port: 8080
+identifyingField: uuid
+defaultSearchField: content
+fields:
+  - name: uuid
+    type: string
+    store: true
+
+  - name: title
+    type: text
+    store: true
+  - name: content
+    type: text
+    store: true
+  - name: type
+    type: string
+    store: true
+  - name: parents
+    type: facet
+    store: false
+    hierarchical: true
+    multiValued: true

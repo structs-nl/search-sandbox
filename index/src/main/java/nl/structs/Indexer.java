@@ -91,14 +91,12 @@ class Indexer {
 
     Indexer(FSDirectory dir, FSDirectory taxdir) throws IOException {
 
-
         fconfig = new FacetsConfig();
 
         fconfig.setHierarchical("parents", true);
         fconfig.setMultiValued("parents", true);
         fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
         fconfig.setRequireDimCount("parents", true);
-
 
         //analyzer = new StandardAnalyzer();
         analyzer = new CustomAnalyzer();
