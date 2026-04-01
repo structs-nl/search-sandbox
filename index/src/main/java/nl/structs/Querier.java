@@ -1,6 +1,7 @@
 package nl.structs;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -341,8 +342,6 @@ public class Querier {
 				var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs, new int[] { 100 });
 
 				//var contentHight = high.get("content");
-
-
 
 				//var source = highlighter.offsetSource("content");
 				//System.out.println(source.toString());

@@ -3,22 +3,9 @@ dataPath: ./data
 port: 8080
 identifyingField: uuid
 defaultSearchField: content
-fields:
-  - name: uuid
-    type: string
-    store: true
 
-  - name: title
-    type: text
-    store: true
-  - name: content
-    type: text
-    store: true
-  - name: type
-    type: string
-    store: true
-  - name: parents
-    type: facet
-    store: false
-    hierarchical: true
-    multiValued: true
+  # we can also put the field config in the input data
+  # just get the generic config options here
+  # and do check the input data on some constraints (identifying and default field for instance)
+
+# we do want to specify the output fields

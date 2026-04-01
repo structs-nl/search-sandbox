@@ -181,7 +181,7 @@ public class Enlight {
 			if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
 
 				HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-				response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+				//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 				response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
 				ctx.write(response);
 
@@ -206,6 +206,8 @@ public class Enlight {
 
 					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+
+					// Add keepalive code
 
 				} else if (httpRequest.uri().startsWith("/ingest")) {
 

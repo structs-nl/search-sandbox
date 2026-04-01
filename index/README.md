@@ -1,3 +1,7 @@
+OpenAPI specification
+- ingest
+- query
+
 queries:
 TermIntervalsSource.java
 Used by Intervals.java
@@ -23,9 +27,7 @@ mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -s
 mvn exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
 
 mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -index ./index_test.json"
-mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -index ./output.json"
-mvn exec:java -Dexec.mainClass="org.apache.lucene.luke.app.desktop.LukeMain"
-
+mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -index ../transform/output.json"
 
 **Docker create**
 
