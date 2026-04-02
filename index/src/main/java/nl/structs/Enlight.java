@@ -15,20 +15,15 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.util.concurrent.ExecutionException;
 import java.net.URISyntaxException;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 import java.io.IOException;
-import java.io.FileNotFoundException;
 import java.io.BufferedWriter;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
-import java.nio.file.Path;
 
 import org.apache.commons.cli.*;
 import org.apache.lucene.store.FSDirectory;
@@ -39,7 +34,7 @@ public class Enlight {
 	// - handle the command line args
 	// - start the webserver
 	// - handles the http requests (/query and /index)
-	// - handle config and logging (currently not used)
+	// - handle logging (currently not used)
 
 	// The Indexer and Querier contain the data / app specific code. This can be
 	// generalized to abstract classes and app specific instances
@@ -51,8 +46,6 @@ public class Enlight {
 	protected String datapath;
 	protected FSDirectory indexdir;
 	protected FSDirectory taxdir;
-	protected JsonNode config;
-	private Path configpath;
 	protected BufferedWriter logwriter;
 
 	public Enlight(String[] args)
@@ -91,8 +84,6 @@ public class Enlight {
 			// Error message
 			return;
 		}
-
-		readConfig();
 
 		// File file = new File(datapath + "/log.txt");
 		// if (!file.exists())
@@ -135,16 +126,6 @@ public class Enlight {
 		}
 
 		System.exit(0);
-	}
-
-
-	protected void readConfig()
-			throws FileNotFoundException, IOException {
-		configpath = Paths.get(datapath + "/config.yaml");
-		ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-		if (configpath.toFile().exists()) {
-			config = yamlMapper.readTree(configpath.toFile());
-		}
 	}
 
 	protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
@@ -233,6 +214,17 @@ public class Enlight {
 					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
 					// Add keepalive code
+
+				if (httpRequest.uri().startsWith("/config")) {
+
+					// put the config here with a json file:
+
+					// - identifying field
+					// - default search field
+					// - Output fields
+					// - Facet fields
+					// - Text field config
+
 
 				}
 			}
