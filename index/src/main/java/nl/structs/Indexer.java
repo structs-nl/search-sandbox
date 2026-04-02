@@ -39,7 +39,7 @@ import org.apache.lucene.store.FSDirectory;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -159,6 +159,21 @@ class Indexer {
 
         Iterator<JsonNode> iterator = json.elements();
 
+        /* 
+            data in an array or a single record
+            go through the fields per record
+            the records need to have the identifier field
+            
+            data type values: String, Text, Integer, Facet
+            store the field value?
+
+            in the config:
+            text options: 
+            facet options: multivalued, hierarchical, drilldown, dimcount
+                     
+        */
+
+
         while (iterator.hasNext()) {
 
             JsonNode doc = iterator.next();
@@ -169,7 +184,6 @@ class Indexer {
             JsonNode texturl = doc.at("/texturl");
 
             System.out.println(texturl.asText());
-            JsonNode parents = doc.at("/parents");
 
             Document luceneDoc = new Document();
 
@@ -184,19 +198,17 @@ class Indexer {
 
             luceneDoc.add(new Field("title", title.asText(), TextFieldType));
 
+
+            JsonNode parents = doc.at("/parents");
+
+            var parpath = new ArrayList<String>();
             var pariter = parents.elements();
-            var parpath = new LinkedList<String>();
-
             while (pariter.hasNext()) {
-                var parent = pariter.next();
-                parpath.add(parent.asText());
+                parpath.add(pariter.next().asText());
             }
+            if (!parpath.isEmpty())
+                luceneDoc.add(new FacetField("parents", parpath.toArray(new String[0])));
 
-            if (!parpath.isEmpty()) {
-                var path = new String[parpath.size()];
-                path = parpath.toArray(path);
-                luceneDoc.add(new FacetField("parents", path));
-            }
             iw.updateDocument(new Term("uuid", uuid.asText()), fconfig.build(dtw, luceneDoc));
         }
 

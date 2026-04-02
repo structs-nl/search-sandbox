@@ -1,13 +1,12 @@
 package nl.structs;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
-
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.multipart.*;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -37,7 +36,7 @@ import org.apache.lucene.store.FSDirectory;
 public class Enlight {
 
 	// This class does the following
-	// - handle the command line args (serve and index)
+	// - handle the command line args
 	// - start the webserver
 	// - handles the http requests (/query and /index)
 	// - handle config and logging (currently not used)
@@ -74,8 +73,7 @@ public class Enlight {
 
 		Options options = new Options();
 		options.addOption("path", true, "Data path");
-		options.addOption("serve", true, "Start server from port");
-		options.addOption("index", true, "index file");
+		options.addOption("port", true, "Start server from port");
 
 		// TODO: add a readonly option. This will disable ingesting
 
@@ -86,7 +84,11 @@ public class Enlight {
 			datapath = cmd.getOptionValue("path");
 			indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
         	taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
+
+			// TODO check if the directories exist. Create if not so
+
 		} else {
+			// Error message
 			return;
 		}
 
@@ -98,15 +100,13 @@ public class Enlight {
 
 		// FileWriter fw = new FileWriter(file, true);
 		// logwriter = new BufferedWriter(fw);
-
-        // A few config settings that are data-specific. How do do this in a config file?
 		
 		indexer = new Indexer(indexdir, taxdir);
 		querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
 
-		if (cmd.hasOption("serve")) {
+		if (cmd.hasOption("port")) {
 
-			var port = cmd.getOptionValue("serve");
+			var port = cmd.getOptionValue("port");
 			var bossGroup = new NioEventLoopGroup(1);
 			var workerGroup = new NioEventLoopGroup();
 
@@ -131,23 +131,6 @@ public class Enlight {
 				querier.close();
 				bossGroup.shutdownGracefully();
 				workerGroup.shutdownGracefully();
-			}
-		}
-
-		// Remove the index option. Work with ingest via the http server
-
-
-		if (cmd.hasOption("index")) {
-			String path = cmd.getOptionValue("index");
-			try {
-				Path indexfile = Paths.get(path);
-				System.out.print(path);
-				if (indexfile.toFile().exists()) {
-					indexer.index(mapper.readTree(indexfile.toFile()));
-				}
-
-			} catch (Exception e) {
-
 			}
 		}
 
@@ -194,22 +177,62 @@ public class Enlight {
 					var data = httpRequest.content();
 					var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
 
-					// TODO: generalize the output format of the searcher. Now it's Netty specific
 					var bodybuf = querier.search(query);
 
 					var response = new DefaultHttpResponse(HTTP_1_1, OK);
 					response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-					response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+					//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
 					ctx.write(response);
-					// wrap the ByteBuf in HttpContent so the compressor can intercept it
 					ctx.write(new DefaultHttpContent(bodybuf));
 
 					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
 					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
 					// Add keepalive code
+					// Do we need to close the buffer?
+
+					// Error handling
 
 				} else if (httpRequest.uri().startsWith("/ingest")) {
+
+					String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
+
+					// Handle form-data decoding
+					if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
+							|| contentType.contains("multipart/form-data"))) {
+						
+						HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
+						
+						for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
+							if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+
+								FileUpload fileUpload = (FileUpload) httpData;
+								if (fileUpload.isCompleted()) {
+
+									indexer.index(mapper.readTree(fileUpload.getString()));
+
+								} else {
+									// Error
+									System.out.println("File upload not completed: " + fileUpload.getFilename());
+								}
+							}
+						}
+						
+						decoder.cleanFiles();
+						decoder.destroy();
+					}
+
+					// Error handling
+
+					var response = new DefaultHttpResponse(HTTP_1_1, OK);
+					//response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+					//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+					ctx.write(response);
+
+					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+
+					// Add keepalive code
 
 				}
 			}
