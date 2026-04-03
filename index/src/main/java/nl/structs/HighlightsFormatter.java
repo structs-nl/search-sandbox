@@ -7,7 +7,7 @@ import org.apache.lucene.search.uhighlight.Passage;
 import org.apache.lucene.search.uhighlight.PassageFormatter;
 import org.apache.lucene.util.BytesRef;
 
-public class HitReturningFormatter extends PassageFormatter {
+public class HighlightsFormatter extends PassageFormatter {
 
     // This is a formatter, getting the details of the hits out
 

@@ -47,7 +47,7 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
-import nl.structs.HitReturningFormatter.HighlightResult;
+import nl.structs.HighlightsFormatter.HighlightResult;
 
 public class Querier {
 
@@ -72,7 +72,7 @@ public class Querier {
 
     highlighter = new HighlightsAsObject(UnifiedHighlighter.builder(indexSearcher, analyzer)
         .withMaxLength(1000000000) // is there a better way of doing this?
-        .withFormatter(new HitReturningFormatter()));
+        .withFormatter(new HighlightsFormatter()));
   }
 
   public void close() throws IOException {
