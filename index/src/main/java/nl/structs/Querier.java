@@ -19,7 +19,6 @@ import com.fasterxml.uuid.Generators;
 
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
-import nl.structs.Querier.HighlightsAsObject;
 import io.netty.buffer.ByteBuf;
 
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyReader;
@@ -41,14 +40,14 @@ import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
-import org.apache.lucene.search.uhighlight.PassageFormatter;
-import org.apache.lucene.search.uhighlight.Passage;
 import org.apache.lucene.facet.FacetsConfig;
 
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
+
+import nl.structs.HitReturningFormatter.HighlightResult;
 
 public class Querier {
 
@@ -73,7 +72,7 @@ public class Querier {
 
     highlighter = new HighlightsAsObject(UnifiedHighlighter.builder(indexSearcher, analyzer)
         .withMaxLength(1000000000) // is there a better way of doing this?
-        .withFormatter(new PassageReturningFormatter()));
+        .withFormatter(new HitReturningFormatter()));
   }
 
   public void close() throws IOException {
@@ -87,81 +86,6 @@ public class Querier {
     SearchState(Query q, ScoreDoc doc) {
       query = q;
       this.doc = doc;
-    }
-  }
-
-  class HighlightResult {
-    public int start;
-    public int end;
-    public String term;
-    public String text;
-    public String prefix;
-    public String suffix;
-
-    HighlightResult(int start, int end, String term, String text, String prefix, String suffix) {
-      this.start = start;
-      this.end = end;
-      this.term = term;
-      this.text = text;
-      this.prefix = prefix;
-      this.suffix = suffix;
-    }
-  }
-
-  class PassageReturningFormatter extends PassageFormatter {
-    public List<HighlightResult> format(Passage[] passages, String content) {
-
-      var prefixlength = 30;
-      var suffixlength = 30;
-
-      var result = new LinkedList<HighlightResult>();
-
-      for (int p = 0; p < passages.length; p++) {
-        var passage = passages[p];
-
-        for (int i = 0; i < passage.getNumMatches(); i++) {
-
-          int start = passage.getMatchStarts()[i];
-          int end = passage.getMatchEnds()[i];
-          BytesRef term = passage.getMatchTerms()[i];
-          
-          //System.out.println(start + "-" + end + "\t" + content.substring(start, end) + "\t" + term.utf8ToString());
-
-          result.add(new HighlightResult(start, end, term.utf8ToString(), content.substring(start, end),
-              content.substring(start - prefixlength, start),
-              content.substring(end, end + suffixlength)));
-        }
-      }
-
-      return result;
-    }
-  }
-
-  class HighlightsAsObject extends UnifiedHighlighter {
-
-    public HighlightsAsObject(UnifiedHighlighter.Builder builder) {
-      super(builder);
-    }
-
-    // Expose the protected method publicly
-    public UnifiedHighlighter.OffsetSource offsetSource(String field) {
-      return super.getOffsetSource(field);
-    }
-
-    // Expose the protected method publicly
-    public Map<String, Object[]> highlight(
-        String[] fields,
-        Query query,
-        ScoreDoc[] scoreDocs,
-        int[] maxPassages) throws IOException {
-
-      // Extract document IDs from ScoreDoc array
-      int[] docIds = new int[scoreDocs.length];
-      for (int i = 0; i < scoreDocs.length; i++) {
-        docIds[i] = scoreDocs[i].doc;
-      }
-
-      return this.highlightFieldsAsObjects(fields, query, docIds, maxPassages);
     }
   }
 
@@ -360,27 +284,42 @@ public class Querier {
 
         // Document result rendering. This is used for new and continued queries.
 
-        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs, new int[] { 100 });
+        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs,
+            new int[] { 100 });
         var contentHighlights = high.get("content");
-        
-
-        // var source = highlighter.offsetSource("content");
-        // System.out.println(source.toString());
 
         gen.writeArrayFieldStart("docs");
 
         for (var i = 0; i < topdocs.scoreDocs.length; i++) {
           var hit = topdocs.scoreDocs[i];
           var doc = indexSearcher.storedFields().document(hit.doc);
-          
-          @SuppressWarnings("unchecked")
-          LinkedList<HighlightResult> docHighlights = (LinkedList<HighlightResult>) contentHighlights[i];
+
+          gen.writeStartObject();
 
           var title = doc.get("title");
           var uuid = doc.get("uuid");
 
-          gen.writeString(uuid);
+          gen.writeStringField("title", title);
+          gen.writeStringField("uuid", uuid);
           
+          gen.writeArrayFieldStart("highlights");
+          @SuppressWarnings("unchecked")
+          var docHighlights = (LinkedList<HighlightResult>) contentHighlights[i];
+          
+          for (var highlight : docHighlights) {
+            gen.writeStartObject();
+            gen.writeNumberField("start", highlight.start);
+            gen.writeNumberField("end", highlight.end);
+            gen.writeStringField("term", highlight.term);
+            gen.writeStringField("text", highlight.text);
+            gen.writeStringField("prefix", highlight.prefix);
+            gen.writeStringField("suffix", highlight.suffix);
+            gen.writeEndObject();
+          }
+          
+          gen.writeEndArray();
+          gen.writeEndObject();
+
         }
         gen.writeEndArray();
       }
