@@ -30,208 +30,210 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Enlight {
 
-	// This class does the following
-	// - handle the command line args
-	// - start the webserver
-	// - handles the http requests (/query and /index)
-	// - handle logging (currently not used)
+  // This class does the following
+  // - handle the command line args
+  // - start the webserver
+  // - handles the http requests (/query and /index /config)
+  // - handle logging (currently not used)
 
-	// The Indexer and Querier contain the data / app specific code. This can be
-	// generalized to abstract classes and app specific instances
+  // The Indexer and Querier contain the data / app specific code. This can be
+  // generalized to abstract classes and app specific instances
 
-	protected ObjectMapper mapper = new ObjectMapper();
+  protected ObjectMapper mapper = new ObjectMapper();
 
-	protected Indexer indexer;
-	protected Querier querier;
-	protected String datapath;
-	protected FSDirectory indexdir;
-	protected FSDirectory taxdir;
-	protected BufferedWriter logwriter;
+  protected Indexer indexer;
+  protected Querier querier;
+  protected String datapath;
+  protected FSDirectory indexdir;
+  protected FSDirectory taxdir;
+  protected BufferedWriter logwriter;
 
-	public Enlight(String[] args)
-			throws URISyntaxException, IOException, InterruptedException, ExecutionException,
-			org.apache.lucene.queryparser.classic.ParseException, ParseException {
+  public Enlight(String[] args)
+      throws URISyntaxException, IOException, InterruptedException, ExecutionException,
+      org.apache.lucene.queryparser.classic.ParseException, ParseException {
 
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				try {
-					System.out.println("\nClose index");
-					indexer.close();
-					System.out.println("Bye!");
-				} catch (Exception e) {
-					System.out.println(e.getMessage());
-				}
-			}
-		});
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      public void run() {
+        try {
+          System.out.println("\nClose index");
+          indexer.close();
+          System.out.println("Bye!");
+        } catch (Exception e) {
+          System.out.println(e.getMessage());
+        }
+      }
+    });
 
-		Options options = new Options();
-		options.addOption("path", true, "Data path");
-		options.addOption("port", true, "Start server from port");
+    Options options = new Options();
+    options.addOption("path", true, "Data path");
+    options.addOption("port", true, "Start server from port");
 
-		// TODO: add a readonly option. This will disable ingesting
+    // TODO: add a readonly option. This will disable ingesting
 
-		CommandLineParser parser = new DefaultParser();
-		CommandLine cmd = parser.parse(options, args);
+    CommandLineParser parser = new DefaultParser();
+    CommandLine cmd = parser.parse(options, args);
 
-		if (cmd.hasOption("path")) {
-			datapath = cmd.getOptionValue("path");
-			indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
-        	taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
+    if (cmd.hasOption("path")) {
+      datapath = cmd.getOptionValue("path");
+      indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
+      taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
 
-			// TODO check if the directories exist. Create if not so
+      // TODO check if the directories exist. Create if not so
 
-		} else {
-			// Error message
-			return;
-		}
+    } else {
+      // Error message
+      return;
+    }
 
-		// File file = new File(datapath + "/log.txt");
-		// if (!file.exists())
-		// file.createNewFile();
+    // File file = new File(datapath + "/log.txt");
+    // if (!file.exists())
+    // file.createNewFile();
 
-		// FileWriter fw = new FileWriter(file, true);
-		// logwriter = new BufferedWriter(fw);
-		
-		indexer = new Indexer(indexdir, taxdir);
-		querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
+    // FileWriter fw = new FileWriter(file, true);
+    // logwriter = new BufferedWriter(fw);
 
-		if (cmd.hasOption("port")) {
+    indexer = new Indexer(indexdir, taxdir);
+    querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
 
-			var port = cmd.getOptionValue("port");
-			var bossGroup = new NioEventLoopGroup(1);
-			var workerGroup = new NioEventLoopGroup();
+    if (cmd.hasOption("port")) {
 
-			try {
+      var port = cmd.getOptionValue("port");
+      var bossGroup = new NioEventLoopGroup(1);
+      var workerGroup = new NioEventLoopGroup();
 
-				var portnr = Integer.parseInt(port);
+      try {
 
-				var b = new ServerBootstrap();
-				b.option(ChannelOption.SO_BACKLOG, 1024);
-				b.group(bossGroup, workerGroup)
-						.channel(NioServerSocketChannel.class)
-						.handler(new LoggingHandler(LogLevel.INFO))
-						.childHandler(new HTTPInitializer());
+        var portnr = Integer.parseInt(port);
 
-				var ch = b.bind(portnr).sync().channel();
+        var b = new ServerBootstrap();
+        b.option(ChannelOption.SO_BACKLOG, 1024);
+        b.group(bossGroup, workerGroup)
+            .channel(NioServerSocketChannel.class)
+            .handler(new LoggingHandler(LogLevel.INFO))
+            .childHandler(new HTTPInitializer());
 
-				ch.closeFuture().sync();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} finally {
-				System.out.println("Stop!");
-				querier.close();
-				bossGroup.shutdownGracefully();
-				workerGroup.shutdownGracefully();
-			}
-		}
+        var ch = b.bind(portnr).sync().channel();
 
-		System.exit(0);
-	}
+        ch.closeFuture().sync();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      } finally {
+        System.out.println("Stop!");
+        querier.close();
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+      }
+    }
 
-	protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
-		protected void initChannel(SocketChannel socketChannel) throws Exception {
-			ChannelPipeline pipeline = socketChannel.pipeline();
-			pipeline.addLast("codec", new HttpServerCodec());
-			pipeline.addLast("aggregator", new HttpObjectAggregator(Short.MAX_VALUE));
-			pipeline.addLast("compressor", new HttpContentCompressor());
-			pipeline.addLast("httpHandler", new HttpServerHandler());
-		}
-	}
+    System.exit(0);
+  }
 
-	protected class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-		@Override
-		public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
-				throws Exception {
-			if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
+  protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
+    protected void initChannel(SocketChannel socketChannel) throws Exception {
+      ChannelPipeline pipeline = socketChannel.pipeline();
+      pipeline.addLast("codec", new HttpServerCodec());
+      pipeline.addLast("aggregator", new HttpObjectAggregator(Short.MAX_VALUE));
+      pipeline.addLast("compressor", new HttpContentCompressor());
+      pipeline.addLast("httpHandler", new HttpServerHandler());
+    }
+  }
 
-				HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-				//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-				response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
-				ctx.write(response);
+  protected class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    @Override
+    public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
+        throws Exception {
+      if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
 
-				ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-				lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+        // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+        response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
+        ctx.write(response);
 
-			} else if (httpRequest.method().equals(HttpMethod.PUT)) {
-				if (httpRequest.uri().startsWith("/query")) {
+        ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
-					var data = httpRequest.content();
-					var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+      } else if (httpRequest.method().equals(HttpMethod.PUT)) {
+        if (httpRequest.uri().startsWith("/query")) {
 
-					var bodybuf = querier.search(query);
+          var data = httpRequest.content();
+          var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
 
-					var response = new DefaultHttpResponse(HTTP_1_1, OK);
-					response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-					//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-					ctx.write(response);
-					ctx.write(new DefaultHttpContent(bodybuf));
+          var bodybuf = querier.search(query);
 
-					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+          var response = new DefaultHttpResponse(HTTP_1_1, OK);
+          response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+          // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+          ctx.write(response);
+          ctx.write(new DefaultHttpContent(bodybuf));
 
-					// Add keepalive code
-					// Do we need to close the buffer?
+          var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
-					// Error handling
+          // Add keepalive code
+          // Do we need to close the buffer?
 
-				} else if (httpRequest.uri().startsWith("/ingest")) {
+          // Error handling
 
-					String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        } else if (httpRequest.uri().startsWith("/ingest")) {
 
-					// Handle form-data decoding
-					if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
-							|| contentType.contains("multipart/form-data"))) {
-						
-						HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
-						
-						for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
-							if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+          String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
 
-								FileUpload fileUpload = (FileUpload) httpData;
-								if (fileUpload.isCompleted()) {
+          // Handle form-data decoding
+          if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
+              || contentType.contains("multipart/form-data"))) {
 
-									indexer.index(mapper.readTree(fileUpload.getString()));
+            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
 
-								} else {
-									// Error
-									System.out.println("File upload not completed: " + fileUpload.getFilename());
-								}
-							}
-						}
-						
-						decoder.cleanFiles();
-						decoder.destroy();
-					}
+            for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
+              if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
 
-					// Error handling
+                FileUpload fileUpload = (FileUpload) httpData;
+                if (fileUpload.isCompleted()) {
 
-					var response = new DefaultHttpResponse(HTTP_1_1, OK);
-					//response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-					//response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-					ctx.write(response);
+                  // mapper.createParser(fileUpload.getFile());
 
-					var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-					lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+                  indexer.index(mapper.readTree(fileUpload.getString()));
 
-					// Add keepalive code
+                } else {
+                  // Error
+                  System.out.println("File upload not completed: " + fileUpload.getFilename());
+                }
+              }
+            }
 
-				if (httpRequest.uri().startsWith("/config")) {
+            decoder.cleanFiles();
+            decoder.destroy();
+          }
 
-					// put the config here with a json file:
+          // Error handling
 
-					// - identifying field
-					// - default search field
-					// - Output fields
-					// - Facet fields
-					// - Text field config
+          var response = new DefaultHttpResponse(HTTP_1_1, OK);
+          // response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+          // HttpHeaderValues.APPLICATION_JSON);
+          // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+          ctx.write(response);
 
+          var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
-				}
-			}
-		}
-	}
+          // Add keepalive code
 
-	public static void main(String[] args) throws Exception {
-		new Enlight(args);
-	}
+        } else if (httpRequest.uri().startsWith("/config")) {
+
+          // put the json config here:
+
+          // - identifying field
+          // - default search field
+          // - Output fields
+          // - Facet fields
+          // - Text field config
+
+        }
+      }
+    }
+  }
+
+  public static void main(String[] args) throws Exception {
+    new Enlight(args);
+  }
 }

@@ -1,17 +1,8 @@
-OpenAPI specification
-- ingest
-- query
-
-queries:
-TermIntervalsSource.java
-Used by Intervals.java
-
 intervals.java: what queries are possible with terms? regexps, ranges
 
 Missing in the parser: regexp queries
 git checkout releases/lucene/10.2.2
 https://github.com/apache/lucene-solr/pull/772/
-
 
 # Technical notes
 
@@ -21,12 +12,15 @@ https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/
 
 curl -X PUT "localhost:8080/ingest" -F "file=@index_test.json" 
 
-java -jar ./target/Enlight-0.2.jar -path ./data -port 8080
-mvn exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -port 8080"
 
-mvn exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
+mvn clean compile exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -port 8080"
+mvn clean exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
+
+java -jar ./target/Enlight-0.2.jar -path ./data -port 8080
 
 **Docker create**
 
-docker build -t search-sandbox-dev-env .
-docker run --name search-sandbox -p 8080:8080 -it -v "./:/app" search-sandbox-dev-env
+mvn clean package
+
+docker build -t enlight .
+docker run --name enlight -p 8080:8080 -it -v "./:/app" enlight

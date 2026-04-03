@@ -3,21 +3,32 @@
     "configurations": [
         {
             "type": "java",
-            "name": "TokenizeTest",
+            "name": "Enlight",
             "request": "launch",
-            "mainClass": "nl.structs.TokenizeTest",
-            "projectName": "Searcher"
+            "mainClass": "nl.structs.Enlight",
+            "args": [
+                "-path", "./data", "-port", "8080"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal"
         },
         {
             "type": "java",
-            "name": "Debug TokenizeTest",
+            "name": "Debug Enlight",
             "request": "launch",
-            "mainClass": "nl.structs.Searcher",
+            "mainClass": "nl.structs.Enlight",
             "args": [
-                "-test"
+                "-path", "./data", "-port", "8080"
             ],
-            "projectName": "Searcher",
+            "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
+        },
+        {
+            "type": "java",
+            "name": "Attach Enlight (5005)",
+            "request": "attach",
+            "hostName": "localhost",
+            "port": 5005
         }
     ]
 }
