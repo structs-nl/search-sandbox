@@ -1,3 +1,4 @@
+
 intervals.java: what queries are possible with terms? regexps, ranges
 
 Missing in the parser: regexp queries
@@ -12,9 +13,8 @@ https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/
 
 curl -X PUT "localhost:8080/ingest" -F "file=@index_test.json" 
 
-
 mvn clean compile exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -port 8080"
-mvn clean exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
+mvn  exec:java -Dexec.mainClass="nl.structs.TokenizeTest"
 
 java -jar ./target/Enlight-0.2.jar -path ./data -port 8080
 

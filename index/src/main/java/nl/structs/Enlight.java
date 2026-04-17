@@ -155,10 +155,7 @@ public class Enlight {
       } else if (httpRequest.method().equals(HttpMethod.PUT)) {
         if (httpRequest.uri().startsWith("/query")) {
 
-          var data = httpRequest.content();
-          var query = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
-
-          var bodybuf = querier.search(query);
+          var bodybuf = querier.search(httpRequest.content());
 
           var response = new DefaultHttpResponse(HTTP_1_1, OK);
           response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);

@@ -44,12 +44,8 @@ public final class AnnotateFilter extends TokenFilter {
 
   private final LinkedList<BufferedOutputToken> outputBuffer = new LinkedList<>();
 
-  private int nextNodeOut;
-  private int lastNodeOut;
   private int maxLookaheadUsed;
 
-  // For testing:
-  private int captureCount;
   private boolean liveToken;
 
   // True once the input TokenStream is exhausted:
@@ -135,11 +131,6 @@ public final class AnnotateFilter extends TokenFilter {
 
   @Override
   public boolean incrementToken() throws IOException {
-    // System.out.println("\nS: incrToken lastNodeOut=" + lastNodeOut + "
-    // nextNodeOut=" +
-    // nextNodeOut);
-
-    assert lastNodeOut <= nextNodeOut;
 
     if (outputBuffer.isEmpty() == false) {
       // We still have pending outputs from a prior synonym match:
@@ -196,13 +187,6 @@ public final class AnnotateFilter extends TokenFilter {
       assert liveToken == false;
     }
 
-    // TODO: what happens here?
-
-    lastNodeOut += posIncrAtt.getPositionIncrement();
-    nextNodeOut = lastNodeOut + posLenAtt.getPositionLength();
-
-    // System.out.println(" syn: ret lookahead=" + this);
-
     return true;
   }
 
@@ -232,9 +216,6 @@ public final class AnnotateFilter extends TokenFilter {
       typeAtt.setType(TOKEN_TYPE);
     }
 
-    // System.out.println(" lastNodeOut=" + lastNodeOut);
-    // System.out.println(" term=" + termAtt);
-
     posIncrAtt.setPositionIncrement(token.posIncrement);
     posLenAtt.setPositionLength(token.endPos - token.startPos); // TODO check
   }
@@ -253,7 +234,7 @@ public final class AnnotateFilter extends TokenFilter {
     int matchLength = 0;
     boolean doFinalCapture = false;
 
-    int lookaheadUpto = lookaheadNextRead; // ?
+    int lookaheadUpto = lookaheadNextRead;
 
     while (true) {
       // System.out.println(" cycle lookaheadUpto=" + lookaheadUpto + " maxPos=" +
@@ -355,8 +336,6 @@ public final class AnnotateFilter extends TokenFilter {
       } else {
 
         // More matching is possible
-        // TODO: what happens here?
-
         doFinalCapture = true;
         if (liveToken) {
           capture();
@@ -369,11 +348,9 @@ public final class AnnotateFilter extends TokenFilter {
       capture();
     }
 
-    // 4: are there full matches?
+    // 4: are there matches (all should be full matches at this point)
 
     if (matches.size() > 0) {
-
-      // TODO: check what happens with liveToken
       
       if (liveToken) {
         // Single input token synonym; we must buffer it now:
@@ -382,7 +359,6 @@ public final class AnnotateFilter extends TokenFilter {
 
       bufferOutputTokens(matches, matchLength);
 
-      // TODO: check what happens here!
       lookaheadNextRead += matchLength;
       // System.out.println(" precmatch; set lookaheadNextRead=" + lookaheadNextRead +
       // " now max="
@@ -392,16 +368,11 @@ public final class AnnotateFilter extends TokenFilter {
       // now max=" +
       // lookahead.getMaxPos());
 
-
       return true;
     } else {
       // System.out.println(" no match; lookaheadNextRead=" + lookaheadNextRead);
       return false;
     }
-
-    // System.out.println(" parse done inputSkipCount=" + inputSkipCount + "
-    // nextRead=" + nextRead
-    // + " nextWrite=" + nextWrite);
   }
 
   /**
@@ -420,12 +391,13 @@ public final class AnnotateFilter extends TokenFilter {
       // 1: output the match
       var token = matches.get(i);
       outputBuffer.add(token);
-
       // 2: output the tokens until (<) the next match or the end of the match
+
+      // TODO finish
 
       int untilToken;
 
-      if (i< matches.size()){
+      if (i < matches.size() - 1){
         // not the last match. get the next one
         var nextMatch = matches.get(i+1);
         untilToken = nextMatch.startPos;
@@ -433,12 +405,22 @@ public final class AnnotateFilter extends TokenFilter {
       } else {
         untilToken = matchLength;
       }
-    
-      //BufferedInputToken token = lookahead.get(lookaheadNextRead);
-      // outputBuffer.add( new BufferedOutputToken(token.state, token.term.toString(), startNode, inputEndNode));
 
+      // relation startPos en lookahead ?
+
+      for (int j = 0 ; j < untilToken; j++) {
+
+          // TODO not sure if this is entirely correct. don't we increase the lookaheadNextRead?
+
+          var origToken = lookahead.get(lookaheadNextRead + j);
+
+          // TODO calculate the startPos from the match
+          
+          // The endpos follows from that
+          // The posincrement is 1
+          // outputBuffer.add( new BufferedOutputToken(origToken.state, null, );
+      }
     }
-    
   }
 
   /** Buffers the current input token into lookahead buffer. */
@@ -454,7 +436,6 @@ public final class AnnotateFilter extends TokenFilter {
     assert token.term.length() == 0;
     token.term.append(termAtt);
 
-    captureCount++;
     maxLookaheadUsed = Math.max(maxLookaheadUsed, lookahead.getBufferSize());
     // System.out.println(" maxLookaheadUsed=" + maxLookaheadUsed);
   }
@@ -465,23 +446,10 @@ public final class AnnotateFilter extends TokenFilter {
     lookahead.reset();
     lookaheadNextWrite = 0;
     lookaheadNextRead = 0;
-    captureCount = 0;
-    lastNodeOut = -1;
-    nextNodeOut = 0;
     finished = false;
     liveToken = false;
     outputBuffer.clear();
     maxLookaheadUsed = 0;
     // System.out.println("S: reset");
-  }
-
-  // for testing
-  int getCaptureCount() {
-    return captureCount;
-  }
-
-  // for testing
-  int getMaxLookaheadUsed() {
-    return maxLookaheadUsed;
   }
 }

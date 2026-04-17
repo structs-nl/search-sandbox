@@ -27,10 +27,10 @@ public class HighlightsFormatter extends PassageFormatter {
         this.prefix = prefix;
         this.suffix = suffix;
     }
-    }
+  }
 
   @Override
-  public List<HighlightResult> format(Passage[] passages, String content) {
+  public LinkedList<HighlightResult> format(Passage[] passages, String content) {
     var prefixlength = 30;
     var suffixlength = 30;
 

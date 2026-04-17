@@ -74,11 +74,9 @@ class Indexer {
 
   public static final FieldType TextFieldType = new FieldType();
 
-  // The indexer is custom code, iterating a file specified on the command line
-  // and doing some data operations, including lookups
-  // The config and data should be separated. The data gathering should be
-  // external and is already done in another script
-  // The config of the indexer should be part of the Querier class
+  
+  // The config and data should be separated
+  // The data gathering should be external and is already done in another script
 
   static {
     TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);

@@ -2,6 +2,7 @@ package nl.structs;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Arrays;
@@ -51,6 +52,9 @@ import nl.structs.HighlightsFormatter.HighlightResult;
 
 public class Querier {
 
+  // TODO: finish the facets
+  // TODO: move stuff to the config file
+
   protected ObjectMapper mapper;
   protected FacetsConfig fconfig;
   protected IndexSearcher indexSearcher;
@@ -89,10 +93,13 @@ public class Querier {
     }
   }
 
-  public static SearchQuery parseQuery(JsonNode json) {
+  public SearchQuery parseQuery(ByteBuf data) throws IOException {
     // Get the query out of the JSON
 
     var sq = new SearchQuery();
+
+    var json = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+
     var qidnode = json.at("/qid");
 
     if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
@@ -168,20 +175,20 @@ public class Querier {
     public Integer facetPageSize;
   }
 
-  public ByteBuf search(JsonNode json)
+  public ByteBuf search(ByteBuf data)
       throws IOException, InterruptedException {
-
-    // Move the JSON parsing here
 
     TopDocs topdocs = null;
     Query currentQuery = null;
-    ByteBuf bodybuf = Unpooled.directBuffer(8);
 
     // TODO Check if the index should be re-opened after a write operation
 
+    var bodybuf = Unpooled.directBuffer(8);
+    var byteoutput = new ByteBufOutputStream(bodybuf);
+
     try {
-      var byteoutput = new ByteBufOutputStream(bodybuf);
-      var searchquery = parseQuery(json);
+
+      var searchquery = parseQuery(data);
 
       var gen = mapper.getFactory().createGenerator((OutputStream) byteoutput);
       gen.writeStartObject();
