@@ -106,14 +106,31 @@ public final class AnnotateFilter extends TokenFilter {
     public int posIncrement;
     public boolean isPartial;
 
-    public BufferedOutputToken(State state, String term, int startPos, int endPos, int startOffset, int endOffset, int posIncrement, boolean isPartial) {
+    public BufferedOutputToken(State state) {
+
+      // constructor for original input tokens
+
       this.state = state;
+      this.term = null;
+      this.startPos = 0;
+      this.endPos = 0;
+      this.startOffset = 0;
+      this.endOffset = 0;
+      this.posIncrement = 0;
+      this.isPartial = false;
+    }
+
+    public BufferedOutputToken( String term, int startPos, int endPos, int startOffset, int endOffset, int posIncrement, boolean isPartial) {
+    
+      // constructor for anntation tokens
+      this.state = null;
       this.term = term;
       this.startPos = startPos;
       this.endPos = endPos;
       this.startOffset = startOffset;
       this.endOffset = endOffset;
       this.posIncrement = posIncrement;
+      this.isPartial = isPartial;
     }
   };
 
@@ -294,8 +311,10 @@ public final class AnnotateFilter extends TokenFilter {
       // - startOffset and endOffset are used directly from the annotation. They are simply pointers into the original text.
       // - endpos is now set to 0, but we dont know if this is the final value. That's why it's partial.
 
+      // TODO check the matching logic
+
       if (currentAnnotation != null && currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-        matches.add(new BufferedOutputToken(null, currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+        matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
       }
 
       while (annotationIterator.hasNext()) {
@@ -306,7 +325,7 @@ public final class AnnotateFilter extends TokenFilter {
         }
 
         if (currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-          matches.add(new BufferedOutputToken(null, currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+          matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
         }
       }
 
@@ -359,15 +378,6 @@ public final class AnnotateFilter extends TokenFilter {
 
       bufferOutputTokens(matches, matchLength);
 
-      lookaheadNextRead += matchLength;
-      // System.out.println(" precmatch; set lookaheadNextRead=" + lookaheadNextRead +
-      // " now max="
-      // + lookahead.getMaxPos());
-      lookahead.freeBefore(lookaheadNextRead);
-      // System.out.println(" match; set lookaheadNextRead=" + lookaheadNextRead + "
-      // now max=" +
-      // lookahead.getMaxPos());
-
       return true;
     } else {
       // System.out.println(" no match; lookaheadNextRead=" + lookaheadNextRead);
@@ -391,9 +401,8 @@ public final class AnnotateFilter extends TokenFilter {
       // 1: output the match
       var token = matches.get(i);
       outputBuffer.add(token);
-      // 2: output the tokens until (<) the next match or the end of the match
 
-      // TODO finish
+      // 2: output the tokens until (<) the next match or the end of the match
 
       int untilToken;
 
@@ -406,21 +415,24 @@ public final class AnnotateFilter extends TokenFilter {
         untilToken = matchLength;
       }
 
-      // relation startPos en lookahead ?
+      // TODO check this logic
 
-      for (int j = 0 ; j < untilToken; j++) {
-
-          // TODO not sure if this is entirely correct. don't we increase the lookaheadNextRead?
-
-          var origToken = lookahead.get(lookaheadNextRead + j);
-
-          // TODO calculate the startPos from the match
-          
-          // The endpos follows from that
-          // The posincrement is 1
-          // outputBuffer.add( new BufferedOutputToken(origToken.state, null, );
+      while ( lookaheadNextRead < untilToken) {
+         lookaheadNextRead++;
+          var origToken = lookahead.get(lookaheadNextRead);   
+          // We don't change anything in the original tokens    
+          outputBuffer.add(new BufferedOutputToken(origToken.state));   
       }
     }
+
+    // System.out.println(" precmatch; set lookaheadNextRead=" + lookaheadNextRead +
+    // " now max="
+    // + lookahead.getMaxPos());
+    lookahead.freeBefore(lookaheadNextRead);
+    // System.out.println(" match; set lookaheadNextRead=" + lookaheadNextRead + "
+    // now max=" +
+    // lookahead.getMaxPos());
+
   }
 
   /** Buffers the current input token into lookahead buffer. */
