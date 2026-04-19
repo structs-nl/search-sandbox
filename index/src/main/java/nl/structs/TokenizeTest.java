@@ -40,7 +40,7 @@ public class TokenizeTest {
       annotations.add(new AnnotateFilter.Annotation(8, 14, "concept"));
 
       annotations.add(new AnnotateFilter.Annotation(15, 23, "concept2"));
-      //annotations.add(new AnnotateFilter.Annotation(35, 42, "concept3"));
+      annotations.add(new AnnotateFilter.Annotation(35, 42, "concept3"));
 
       tokenStream = new AnnotateFilter(tokenStream, annotations);
 

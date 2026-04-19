@@ -258,7 +258,7 @@ public final class AnnotateFilter extends TokenFilter {
       // lookahead.getMaxPos());
 
       // Pull next token's chars:
-      //final char[] buffer;
+      String termText;
       //final int bufferLen;
       final int inputEndOffset;
       final int inputStartOffset;
@@ -267,7 +267,7 @@ public final class AnnotateFilter extends TokenFilter {
         // Still in our lookahead buffer
         BufferedInputToken token = lookahead.get(lookaheadUpto);
         lookaheadUpto++;
-        //buffer = token.term.chars();
+        termText = token.term.toString();
         //bufferLen = token.term.length();
         inputEndOffset = token.endOffset;
         inputStartOffset = token.startOffset;
@@ -287,7 +287,7 @@ public final class AnnotateFilter extends TokenFilter {
         } else if (input.incrementToken()) {
           // System.out.println(" input.incrToken");
           liveToken = true;
-          //buffer = termAtt.buffer();
+          termText = termAtt.toString();
           //bufferLen = termAtt.length();
           inputStartOffset = offsetAtt.startOffset();
           inputEndOffset = offsetAtt.endOffset();
@@ -300,7 +300,10 @@ public final class AnnotateFilter extends TokenFilter {
         }
       }
 
+      // System.out.println(termText);
+
       matchLength++;
+
       // System.out.println(" cycle term=" + new String(buffer, 0, bufferLen));
 
       // Check if there is a match after reading the token      
@@ -311,21 +314,31 @@ public final class AnnotateFilter extends TokenFilter {
       // - startOffset and endOffset are used directly from the annotation. They are simply pointers into the original text.
       // - endpos is now set to 0, but we dont know if this is the final value. That's why it's partial.
 
-      // TODO check the matching logic
-
-      if (currentAnnotation != null && currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-        matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+      if (currentAnnotation == null) {
+          // start iterating
+          currentAnnotation = annotationIterator.next();
+          // System.out.println(currentAnnotation.annotation);
       }
 
-      while (annotationIterator.hasNext()) {
-        currentAnnotation = annotationIterator.next();
-        if (currentAnnotation.startOffset >= inputEndOffset) {
-          // We are past the end of the interval, so we can stop checking
-          break;
-        }
+      if (currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
 
-        if (currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-          matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+        // System.out.println("match");
+        matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+
+        while (annotationIterator.hasNext()) {
+            currentAnnotation = annotationIterator.next();
+            // System.out.println(currentAnnotation.annotation);
+
+            if (currentAnnotation.startOffset >= inputEndOffset) {
+              // We are past the end of the interval, so we can stop checking
+              // System.out.println("break");
+              break;
+            }
+
+            if (currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
+              // System.out.println("match");
+              matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+            }
         }
       }
 

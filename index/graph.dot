@@ -14,6 +14,7 @@ digraph tokens {
   1 -> 2 [ label="is / 5-7"]
   2 [label="2"]
   2 -> 3 [ label="a / 8-9"]
+  2 -> 4 [ label="concept / 8-14"]
   3 [label="3"]
   3 -> 4 [ label="test / 10-14"]
   4 [label="4"]
@@ -25,6 +26,7 @@ digraph tokens {
   6 -> 7 [ label="tokenization / 22-34"]
   7 [label="7"]
   7 -> 8 [ label="process / 35-42"]
+  7 -> 8 [ label="concept3 / 35-42"]
   -2 [shape=point color=white]
   8 -> -2 []
 }
