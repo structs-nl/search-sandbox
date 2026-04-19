@@ -123,6 +123,7 @@ public final class AnnotateFilter extends TokenFilter {
     public BufferedOutputToken( String term, int startPos, int endPos, int startOffset, int endOffset, int posIncrement, boolean isPartial) {
     
       // constructor for anntation tokens
+
       this.state = null;
       this.term = term;
       this.startPos = startPos;
@@ -133,7 +134,6 @@ public final class AnnotateFilter extends TokenFilter {
       this.isPartial = isPartial;
     }
   };
-
 
   public AnnotateFilter(TokenStream input,  LinkedList<Annotation> annotations) {
     super(input);
@@ -172,6 +172,7 @@ public final class AnnotateFilter extends TokenFilter {
       // Fast path: parse pulled one token, but it didn't match
       // the start for any annotations, so we now return it "live" w/o having
       // cloned all of its atts:
+      System.out.println(" fast path: return live token");
       if (finished) {
         // System.out.println(" syn: ret END");
         return false;
@@ -208,7 +209,6 @@ public final class AnnotateFilter extends TokenFilter {
   }
 
   private void releaseBufferedToken() throws IOException {
-    // System.out.println(" releaseBufferedToken");
 
     // We moved some of the state in this function to the output token
     // in order to support multiple matches
@@ -218,23 +218,23 @@ public final class AnnotateFilter extends TokenFilter {
 
     if (token.state != null) {
       // This is an original input token (keepOrig=true case):
-      // System.out.println(" hasState");
       restoreState(token.state);
+      System.out.println(" release token " + termAtt.toString());
+
       // System.out.println(" startOffset=" + offsetAtt.startOffset() + " endOffset="
       // +
       // offsetAtt.endOffset());
     } else {
       clearAttributes();
-      // System.out.println(" no state");
       termAtt.append(token.term);
       offsetAtt.setOffset(token.startOffset, token.endOffset);
       // System.out.println(" startOffset=" + matchStartOffset + " endOffset=" +
       // matchEndOffset);
       typeAtt.setType(TOKEN_TYPE);
+      posIncrAtt.setPositionIncrement(token.posIncrement);
+      posLenAtt.setPositionLength(token.endPos - token.startPos); // TODO check
+      System.out.println(" release token " + token.term + " posIncr=" + token.posIncrement + " posLen=" + (token.endPos - token.startPos));
     }
-
-    posIncrAtt.setPositionIncrement(token.posIncrement);
-    posLenAtt.setPositionLength(token.endPos - token.startPos); // TODO check
   }
 
   /**
@@ -314,7 +314,7 @@ public final class AnnotateFilter extends TokenFilter {
       // TODO check the matching logic
 
       if (currentAnnotation != null && currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-        matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+        matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
       }
 
       while (annotationIterator.hasNext()) {
@@ -325,7 +325,7 @@ public final class AnnotateFilter extends TokenFilter {
         }
 
         if (currentAnnotation.startOffset >= inputStartOffset && currentAnnotation.startOffset <= inputEndOffset) {
-          matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
+          matches.add(new BufferedOutputToken(currentAnnotation.annotation, matchLength - 1,0, currentAnnotation.startOffset, currentAnnotation.endOffset,0, true));
         }
       }
 
@@ -396,6 +396,15 @@ public final class AnnotateFilter extends TokenFilter {
     // We know there is a start of a match at the current position
     matches.sort((o1, o2) -> Integer.compare(o1.startOffset, o2.startOffset));
 
+    // First, output the token that started the match
+
+    outputBuffer.add(
+      new BufferedOutputToken(
+        lookahead.get(lookaheadNextRead).state
+    )); 
+
+    lookaheadNextRead++;
+
     for (int i = 0; i < matches.size(); i++) {
 
       // 1: output the match
@@ -415,13 +424,16 @@ public final class AnnotateFilter extends TokenFilter {
         untilToken = matchLength;
       }
 
-      // TODO check this logic
+      // TODO check the nextRead logic
 
-      while ( lookaheadNextRead < untilToken) {
-         lookaheadNextRead++;
-          var origToken = lookahead.get(lookaheadNextRead);   
-          // We don't change anything in the original tokens    
-          outputBuffer.add(new BufferedOutputToken(origToken.state));   
+      while ( (lookaheadNextRead -1) < untilToken - 1) {
+
+          outputBuffer.add(
+            new BufferedOutputToken(
+              lookahead.get(lookaheadNextRead).state
+          )); 
+
+          lookaheadNextRead++;
       }
     }
 

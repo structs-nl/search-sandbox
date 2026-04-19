@@ -25,39 +25,28 @@ public class TokenizeTest {
       var tokenStream = analyzer.tokenStream("field", text);
       var builder = new SynonymMap.Builder(true);
 
-      // Multi-token synonym values must be encoded as a single CharsRef
-      // where individual tokens are joined with the reserved separator (\u0000).
-
-      // leijff eijgen concept:2e3b9397-4638-4cd0-b0f1-3670b82b2186
-      // Paduwackang concept:e2133a89-248c-4e3a-85dd-11ab62ae181f
-
       // builder.add(new CharsRef("test"), new CharsRef("exam\u0000in\u0000ation"),
       // true); // one original, three synonym tokens
-      // builder.add(new CharsRef("of\u0000the\u0000tokenization\u0000process"), new
-      // CharsRef("section3"), true); // three original, one synonym token
-      // builder.add(new CharsRef("this\u0000is\u0000a"), new CharsRef("section1"),
-      // true); // three original, one synonym token
+      
       builder.add(new CharsRef("a"), new CharsRef("section2"), true); // three original, one synonym token
       builder.add(new CharsRef("is"), new CharsRef("section1"), true); // three original, one synonym token
-
-      builder.add(new CharsRef("leijff eijgen"), new CharsRef("concept:2e3b9397-4638-4cd0-b0f1-3670b82b2186"), true); // three
-                                                                                                                      // original,
-                                                                                                                      // one
-                                                                                                                      // synonym
-                                                                                                                      // token
-
       builder.add(new CharsRef("a\u0000test"), new CharsRef("section3"), true); // three original, one synonym token
 
       var synonymMap = builder.build();
-
-      tokenStream = new SynonymGraphFilter(tokenStream, synonymMap, true);
+      //tokenStream = new SynonymGraphFilter(tokenStream, synonymMap, true);
 
       var annotations = new LinkedList<AnnotateFilter.Annotation>();
-      annotations.add(new AnnotateFilter.Annotation(15, 20, "concept"));
+      annotations.add(new AnnotateFilter.Annotation(1, 6, "concept1"));
+      annotations.add(new AnnotateFilter.Annotation(8, 14, "concept"));
+
+      annotations.add(new AnnotateFilter.Annotation(15, 23, "concept2"));
+      //annotations.add(new AnnotateFilter.Annotation(35, 42, "concept3"));
+
+      tokenStream = new AnnotateFilter(tokenStream, annotations);
 
       outputDot(tokenStream);
 
-      // printTokenStream(tokenStream);
+      //printTokenStream(tokenStream);
 
       System.out.println("done");
 

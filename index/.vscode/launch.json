@@ -3,11 +3,21 @@
     "configurations": [
         {
             "type": "java",
+            "name": "TokenizeTest",
+            "request": "launch",
+            "mainClass": "nl.structs.TokenizeTest",
+            "projectName": "Searcher"
+        },
+        {
+            "type": "java",
             "name": "Enlight",
             "request": "launch",
             "mainClass": "nl.structs.Enlight",
             "args": [
-                "-path", "./data", "-port", "8080"
+                "-path",
+                "./data",
+                "-port",
+                "8080"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
@@ -18,7 +28,10 @@
             "request": "launch",
             "mainClass": "nl.structs.Enlight",
             "args": [
-                "-path", "./data", "-port", "8080"
+                "-path",
+                "./data",
+                "-port",
+                "8080"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
