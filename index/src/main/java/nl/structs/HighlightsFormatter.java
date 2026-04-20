@@ -1,7 +1,6 @@
 package nl.structs;
 
 import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.lucene.search.uhighlight.Passage;
 import org.apache.lucene.search.uhighlight.PassageFormatter;
