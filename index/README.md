@@ -1,25 +1,35 @@
+# Enlight: lightweight Lucene server
 
-intervals.java: what queries are possible with terms? regexps, ranges
+The codebase is work-in-progress.
 
-Missing in the parser: regexp queries
-git checkout releases/lucene/10.2.2
-https://github.com/apache/lucene-solr/pull/772/
+Here you can find a rough draft of a lightweight Lucene based search server.
+It is easy to work with, with very little configuration. For more advanced use-cases, the very small codebase can be tailored.
+
+Elastic and Solr expose a great deal of the Lucene Java API via REST. Enlight does not do that. It simply uses the Lucene Java API and allows to tailor the REST API for your specific needs.
+
+It currently does not support replication, as there is no need for it at this moment. For static indices, multiple nodes can provide a very simple form of replication. For near realtime replication, the segment based replication module of Lucene can be used. This is developed for use-cases where the document-based replication won't do it.
+
+
+- **Enlight.java** is the main class that starts a webserver and does the request handling. Nothing fancy going on here
+
+- **Indexer.java** contains lots of test indexing code that will be removed. The Indexer will merely process the documents sent to the REST API.
+
+- **Querier.java** contains most of the action. There are several utility classes for parsing the sent query (SearchQuery), remembring queries in memory for the continuation (SearchState). Most of the lines-of-code are the JSON response generation. There is a Lucene query constructed from the sent query and the Lucene Facet module is used. This is standard stuff. The "nodes" in the hierarchical facets are stored as documents and retrieved when the facets are rendered. We will describe this in more detail later on.
+
+- **HighlightsAsObjects.java** is an extension of the UnifiedHighlighter with only one task: exposing the protected method HighlightsAsObjects. This allows for custom highlighting. This is done in **HighlightsFormatter.java**, which merely returns some details of the highlighting that we want to use in the response. It's mainly the start and end offsets in the original text, plus the matching term that we are interested in.
+
+# AnnotateFilter
+
+The https://github.com/structs-nl/AnnotateFilter class is a submodule that allows the addition of annotations to the index. These annotations can be searched for and can highlighted in our custom highlighter. This code is almost done an can then be included in the indexing process.
+
+# Interval query using the position length
+
+The annotations have a positionlength that is not stored in the index. Via another filter, the positionlenght can be stored in the payload in the index and then retrieved in the query process. We have done an experiment with a patched interval query module that uses this length-as-payload information and the results are highly encouraging. The Enlight project uses a custom query module that we have built locally. We will will expand on this later on.
+
+The patched code can be found in https://github.com/structs-nl/lucene
 
 # Technical notes
 
-https://github.com/jiepujiang/LuceneTutorial/blob/master/README.md
-https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/flexible/standard/nodes/intervalfn/package-summary.html
-
-
 curl -X PUT "localhost:8080/ingest" -F "file=@index_test.json" 
-
 mvn clean compile exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -port 8080"
-
 java -jar ./target/Enlight-0.2.jar -path ./data -port 8080
-
-**Docker create**
-
-mvn clean package
-
-docker build -t enlight .
-docker run --name enlight -p 8080:8080 -it -v "./:/app" enlight
