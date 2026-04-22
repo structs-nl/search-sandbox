@@ -10,6 +10,8 @@ Elastic and Solr expose a great deal of the Lucene Java API via REST. Enlight do
 It currently does not support replication, as there is no need for it at this moment. For static indices, multiple nodes can provide a very simple form of replication. For near realtime replication, the segment based replication module of Lucene can be used. This is developed for use-cases where the document-based replication won't do it.
 
 
+## A short description of the code
+
 - **Enlight.java** is the main class that starts a webserver and does the request handling. Nothing fancy going on here
 
 - **Indexer.java** contains lots of test indexing code that will be removed. The Indexer will merely process the documents sent to the REST API.
@@ -18,11 +20,11 @@ It currently does not support replication, as there is no need for it at this mo
 
 - **HighlightsAsObjects.java** is an extension of the UnifiedHighlighter with only one task: exposing the protected method HighlightsAsObjects. This allows for custom highlighting. This is done in **HighlightsFormatter.java**, which merely returns some details of the highlighting that we want to use in the response. It's mainly the start and end offsets in the original text, plus the matching term that we are interested in.
 
-# AnnotateFilter
+## AnnotateFilter
 
 The https://github.com/structs-nl/AnnotateFilter class is a submodule that allows the addition of annotations to the index. These annotations can be searched for and can highlighted in our custom highlighter. This code is almost done an can then be included in the indexing process.
 
-# Interval query using the position length
+## Interval query using the position length
 
 The annotations have a positionlength that is not stored in the index. Via another filter, the positionlenght can be stored in the payload in the index and then retrieved in the query process. We have done an experiment with a patched interval query module that uses this length-as-payload information and the results are highly encouraging. The Enlight project uses a custom query module that we have built locally. We will will expand on this later on.
 
