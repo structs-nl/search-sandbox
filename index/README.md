@@ -1,6 +1,6 @@
 # Enlight: lightweight Lucene server
 
-The codebase is work-in-progress.
+*work-in-progress!*
 
 Here you can find a rough draft of a lightweight Lucene based search server.
 It is easy to work with, with very little configuration. For more advanced use-cases, the very small codebase can be tailored.
@@ -28,7 +28,7 @@ The https://github.com/structs-nl/AnnotateFilter class is a submodule that allow
 
 The annotations have a positionlength that is not stored in the index. Via another filter, the positionlenght can be stored in the payload in the index and then retrieved in the query process. We have done an experiment with a patched interval query module that uses this length-as-payload information and the results are highly encouraging. The Enlight project uses a custom query module that we have built locally. We will will expand on this later on.
 
-The patched code can be found in https://github.com/structs-nl/lucene
+The patched code can be found in the following branch of Lucene 10.2.2: https://github.com/structs-nl/lucene/tree/PosLenQuery-10.2.2. Only the lucene-queries and lucene-queryparser jar's need to be built. Lucene queries contains the changes (lucene/queries/src/java/org/apache/lucene/queries/intervals/TermIntervalsSource.java). Queries uses this patched file in the interval queries.
 
 # Technical notes
 
