@@ -95,6 +95,8 @@ class Indexer {
 
     fconfig = new FacetsConfig();
 
+    // Part of the dimension config
+
     fconfig.setHierarchical("parents", true);
     fconfig.setMultiValued("parents", true);
     fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
@@ -200,6 +202,7 @@ class Indexer {
 
       luceneDoc.add(new Field("title", title.asText(), TextFieldType));
 
+
       JsonNode parents = doc.at("/parents");
 
       var parpath = new ArrayList<String>();
@@ -211,6 +214,7 @@ class Indexer {
         luceneDoc.add(new FacetField("parents", parpath.toArray(new String[0])));
 
       iw.updateDocument(new Term("uuid", uuid.asText()), fconfig.build(dtw, luceneDoc));
+
     }
 
     dtw.commit();

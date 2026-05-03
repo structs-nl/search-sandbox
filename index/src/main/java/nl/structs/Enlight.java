@@ -22,7 +22,6 @@ import java.net.URISyntaxException;
 import java.io.IOException;
 import java.io.BufferedWriter;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 
 import org.apache.commons.cli.*;
@@ -226,6 +225,9 @@ public class Enlight {
           // - Text field config
 
         }
+
+        // After the request is handled, clean old search states
+        querier.searchstates.cleanup();
       }
     }
   }

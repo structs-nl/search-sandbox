@@ -1,20 +1,16 @@
 package nl.structs;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.apache.lucene.util.BytesRef;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.uuid.Generators;
 
@@ -35,7 +31,6 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Query;
 
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.DocIdSetIterator;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.ScoreDoc;
@@ -52,9 +47,6 @@ import nl.structs.HighlightsFormatter.HighlightResult;
 
 public class Querier {
 
-  // TODO: finish the facets
-  // TODO: move stuff to the config file
-
   protected ObjectMapper mapper;
   protected FacetsConfig fconfig;
   protected IndexSearcher indexSearcher;
@@ -62,17 +54,20 @@ public class Querier {
   protected Analyzer analyzer;
   protected HighlightsAsObject highlighter;
   protected DirectoryTaxonomyReader taxoReader;
-  protected HashMap<String, SearchState> searchstates = new HashMap<String, SearchState>();
+
+  protected SearchStates searchstates;
 
   public Querier(FSDirectory indexdir, FSDirectory taxdir, ObjectMapper mapper, FacetsConfig fconfig)
       throws IOException, InterruptedException {
 
     this.mapper = mapper;
     this.fconfig = fconfig;
+
     indexReader = DirectoryReader.open(indexdir);
     taxoReader = new DirectoryTaxonomyReader(taxdir);
     indexSearcher = new IndexSearcher(indexReader);
     analyzer = new StandardAnalyzer();
+    searchstates = new SearchStates();
 
     highlighter = new HighlightsAsObject(UnifiedHighlighter.builder(indexSearcher, analyzer)
         .withMaxLength(1000000000) // is there a better way of doing this?
@@ -83,75 +78,46 @@ public class Querier {
     IOUtils.close(indexReader, taxoReader);
   }
 
-  protected class SearchState {
-    public Query query;
-    public ScoreDoc doc;
 
-    SearchState(Query q, ScoreDoc doc) {
-      query = q;
-      this.doc = doc;
-    }
-  }
+  public class SearchStates {
+    private Map<String, SearchState> states = new HashMap<String, SearchState>();
 
-  public SearchQuery parseQuery(ByteBuf data) throws IOException {
-    // Get the query out of the JSON
+    public void cleanup() {
 
-    var sq = new SearchQuery();
+      // TODO: only check max once per hour
 
-    var json = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
-
-    var qidnode = json.at("/qid");
-
-    if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
-      sq.queryid = qidnode.asText();
-    }
-
-    var pagenode = json.at("/pagesize");
-    if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
-
-      // TODO errorhandline
-      sq.pageSize = pagenode.asInt();
-    }
-
-    var querynode = json.at("/query");
-
-    if (!querynode.isMissingNode() && !querynode.isNull() && !querynode.asText().isEmpty()) {
-      sq.queryString = querynode.asText();
-    }
-
-    var facetpagenode = json.at("/facetpagesize");
-    if (!facetpagenode.isMissingNode() && !facetpagenode.isNull() && !facetpagenode.asText().isEmpty()) {
-
-      // TODO errorhandline
-      sq.facetPageSize = facetpagenode.asInt();
-    }
-
-    for (var filter : json.at("/facetfilters")) {
-
-      // TODO: describe what we are doing here
-
-      var dim = "";
-      var path = new LinkedList<String>();
-
-      var elems = filter.elements();
-      while (elems.hasNext()) {
-        var elem = elems.next();
-
-        if (dim.isEmpty()) {
-          dim = elem.asText();
-        } else {
-          path.add(elem.asText());
+      var current = new Date().getTime();
+      for (var state: states.entrySet()) {
+        var age = current - state.getValue().timestamp.getTime();
+        if (age > 86400 * 1000  /* 1 day; perhaps shorten to 6 hours */) {
+          states.remove(state.getKey());
         }
       }
-
-      if (!dim.isEmpty() && path.size() > 0) {
-        var patharr = new String[path.size()];
-        patharr = path.toArray(patharr);
-        sq.facetfilters.add(sq.new PathFilter(dim, patharr));
-      }
     }
 
-    return sq;
+    public SearchState add(Query query, ScoreDoc doc) {
+        var state =  new SearchState(query, doc);
+        states.put(state.uuid.toString(), state);
+        return state;
+    }
+
+    public SearchState get(String uuid) {
+      return states.get(uuid);
+    }
+
+    protected class SearchState {
+      public Query query;
+      public ScoreDoc doc;
+      public Date timestamp;
+      public UUID uuid;
+
+      SearchState(Query q, ScoreDoc doc) {
+        query = q;
+        this.doc = doc;
+        this.timestamp = new Date();
+        this.uuid = Generators.timeBasedGenerator().generate();
+      }
+    }
   }
 
   public static class SearchQuery {
@@ -162,6 +128,66 @@ public class Querier {
 
     public LinkedList<PathFilter> facetfilters = new LinkedList<PathFilter>();
 
+    public SearchQuery(JsonNode json) {
+      /*
+       * {
+       * "qid": "some-query-id", (optional, for continuing a query. The rest of the
+       * parameters are ignored when this is provided)
+       * "query": "some query string", (can be an empty string or null, but should be
+       * provided when no qid is provided)
+       * "pagesize": 10, (optional, default 10) the number of results to return per
+       * page
+       * "facetfilters": [
+       * ["dimension1", "path1", "path2"],
+       * ["dimension2", "path1", "path2"]
+       * ]
+       * }
+       */
+
+      // TODO error handling
+
+      var qidnode = json.at("/qid");
+
+      if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
+        this.queryid = qidnode.asText();
+        // TODO: ignore the rest, except the pagesize
+      }
+
+      var pagenode = json.at("/pagesize");
+      if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
+
+        this.pageSize = pagenode.asInt();
+      }
+
+      var querynode = json.at("/query");
+
+      if (!querynode.isMissingNode() && !querynode.isNull() && !querynode.asText().isEmpty()) {
+        this.queryString = querynode.asText();
+      }
+
+      for (var filter : json.at("/facetfilters")) {
+
+        var dim = "";
+        var path = new LinkedList<String>();
+
+        var elems = filter.elements();
+        while (elems.hasNext()) {
+          var elem = elems.next();
+
+          if (dim.isEmpty()) {
+            dim = elem.asText();
+          } else {
+            path.add(elem.asText());
+          }
+        }
+
+        if (!dim.isEmpty()) {
+          var patharr = path.toArray(new String[path.size()]);
+          this.facetfilters.add(this.new PathFilter(dim, patharr));
+        }
+      }
+    }
+
     public class PathFilter {
       public String dimension;
       public String[] path;
@@ -171,8 +197,6 @@ public class Querier {
         this.path = path;
       }
     }
-
-    public Integer facetPageSize;
   }
 
   public ByteBuf search(ByteBuf data)
@@ -187,8 +211,8 @@ public class Querier {
     var byteoutput = new ByteBufOutputStream(bodybuf);
 
     try {
-
-      var searchquery = parseQuery(data);
+      var json = mapper.readTree((data.toString(StandardCharsets.UTF_8)));
+      var searchquery = new SearchQuery(json);
 
       var gen = mapper.getFactory().createGenerator((OutputStream) byteoutput);
       gen.writeStartObject();
@@ -196,13 +220,10 @@ public class Querier {
       if (searchquery.queryid.isEmpty() == false) {
 
         // Continue a stored query
-        // TODO: clear the queries
-
+        
         var searchstate = searchstates.get(searchquery.queryid);
         topdocs = indexSearcher.searchAfter(searchstate.doc, searchstate.query, searchquery.pageSize);
-
         searchstate.doc = topdocs.scoreDocs[topdocs.scoreDocs.length - 1];
-        searchstates.put(searchquery.queryid, searchstate);
 
         gen.writeStringField("qid", searchquery.queryid);
         gen.writeStringField("hits", Long.toString(topdocs.totalHits.value()));
@@ -214,73 +235,52 @@ public class Querier {
         var querybuilder = new BooleanQuery.Builder();
         var standardparser = new StandardQueryParser(analyzer);
 
-        // TODO: Generalize this from the config file: what types to output in the
-        // query, if not all?
-
-        querybuilder.add(new TermQuery(new Term("type", "file")), BooleanClause.Occur.FILTER);
-
-        // TODO: specifiy the default field in the config file, and use that here
-        // instead of hardcoding "content"
+        // TODO: filter out the dimensions
+        // querybuilder.add(new TermQuery(new Term("type", "file")),
+        // BooleanClause.Occur.FILTER);
 
         if (searchquery.queryString.isEmpty() == false) {
-          querybuilder.add(standardparser.parse(searchquery.queryString, "content"),
-              BooleanClause.Occur.MUST);
+          querybuilder.add(standardparser.parse(searchquery.queryString, "content"), BooleanClause.Occur.MUST);
         }
 
         var query = querybuilder.build();
         var dq = new DrillDownQuery(fconfig, query);
 
         for (var filter : searchquery.facetfilters) {
-          dq.add(filter.dimension, filter.path);
+          if (filter.path.length > 0) {
+            dq.add(filter.dimension, filter.path);
+          }
         }
 
-        var result = new DrillSideways(indexSearcher, fconfig, taxoReader).search(dq,
-            searchquery.pageSize);
+        var result = new DrillSideways(indexSearcher, fconfig, taxoReader).search(dq, searchquery.pageSize);
 
         topdocs = result.hits;
         currentQuery = dq;
 
-        if (topdocs.scoreDocs.length == 0) {
-          gen.writeNumberField("hits", 0);
-        } else {
-          // results; store query and gather facets
+        gen.writeNumberField("hits", topdocs.totalHits.value());
 
-          var queryuuid = Generators.timeBasedGenerator().generate();
-          var searchstate = new SearchState(currentQuery, topdocs.scoreDocs[topdocs.scoreDocs.length - 1]);
+        if (topdocs.scoreDocs.length > 0) {
 
-          searchstates.put(queryuuid.toString(), searchstate);
+          // Store the query and output the facets. this is only done for new, not for continued queries
 
-          gen.writeStringField("qid", queryuuid.toString());
-          gen.writeNumberField("hits", topdocs.totalHits.value());
-
+          var searchstate = searchstates.add(currentQuery, topdocs.scoreDocs[topdocs.scoreDocs.length - 1]);
+          gen.writeStringField("qid", searchstate.uuid.toString());
           gen.writeArrayFieldStart("facets");
 
-          // TODO: this is only one facet. Grab the facet fields from the config and loop
-          // over them here
+          for (var pathfilter : searchquery.facetfilters) {
 
-          var parents = result.facets.getAllChildren("parents");
+              // TODO: put hierarchical facets in nested documents: one per dimension
+              /* 
+              var res = indexSearcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
+              for (var hit : res.scoreDocs) {
+                var doc = indexSearcher.storedFields().document(hit.doc);
+                gen.writeStringField("title", doc.get("title"));
+              }
+              */
 
-          // TODO: this is a specific kind of hierarchical facet: one where the nodes are
-          // part of the index
-          // Specify in the config file
-
-          for (var lv : parents.labelValues) {
             gen.writeStartObject();
-            gen.writeStringField("field", "parents");
-            gen.writeStringField("uuid", lv.label);
-            gen.writeNumberField("count", lv.value.intValue());
-
-            // TODO: can this be done faster with a more direct Lucene lookup?
-            // TODO: what should be specified in the config? The link field and the label
-            // field(s)
-
-            var res = indexSearcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
-            for (var hit : res.scoreDocs) {
-              var doc = indexSearcher.storedFields().document(hit.doc);
-
-              var title = doc.get("title");
-              gen.writeStringField("title", title);
-            }
+            gen.writeStringField("dimension", pathfilter.dimension);
+            writeFacetsRecurse(gen, result.facets, pathfilter.dimension);
             gen.writeEndObject();
           }
           gen.writeEndArray();
@@ -308,11 +308,11 @@ public class Querier {
 
           gen.writeStringField("title", title);
           gen.writeStringField("uuid", uuid);
-          
+
           gen.writeArrayFieldStart("highlights");
           @SuppressWarnings("unchecked")
           var docHighlights = (LinkedList<HighlightResult>) contentHighlights[i];
-          
+
           for (var highlight : docHighlights) {
             gen.writeStartObject();
             gen.writeNumberField("start", highlight.start);
@@ -323,7 +323,7 @@ public class Querier {
             gen.writeStringField("suffix", highlight.suffix);
             gen.writeEndObject();
           }
-          
+
           gen.writeEndArray();
           gen.writeEndObject();
 
@@ -344,5 +344,23 @@ public class Querier {
       System.out.println(Arrays.toString(e.getStackTrace()));
       return bodybuf;
     }
+  }
+
+  private void writeFacetsRecurse(com.fasterxml.jackson.core.JsonGenerator gen, org.apache.lucene.facet.Facets facets, String dimension, String... path) throws IOException {
+    var result = facets.getAllChildren(dimension, path);
+    if (result == null) return;
+    gen.writeArrayFieldStart("children");
+    for (var lv : result.labelValues) {
+      gen.writeStartObject();
+      gen.writeStringField("label", lv.label);
+      gen.writeNumberField("count", lv.value.intValue());
+
+      var childPath = Arrays.copyOf(path, path.length + 1);
+      childPath[path.length] = lv.label;
+      writeFacetsRecurse(gen, facets, dimension, childPath);
+      
+      gen.writeEndObject();
+    }
+    gen.writeEndArray();
   }
 }
