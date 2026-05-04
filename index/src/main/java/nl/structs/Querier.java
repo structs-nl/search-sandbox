@@ -44,6 +44,7 @@ import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
 import nl.structs.HighlightsFormatter.HighlightResult;
+import nl.structs.Querier.SearchQuery.PathFilter;
 
 public class Querier {
 
@@ -127,27 +128,12 @@ public class Querier {
     public String queryString = "";
 
     public LinkedList<PathFilter> facetfilters = new LinkedList<PathFilter>();
+    public LinkedList<String> facetdimensions = new LinkedList<String>();
 
     public SearchQuery(JsonNode json) {
-      /*
-       * {
-       * "qid": "some-query-id", (optional, for continuing a query. The rest of the
-       * parameters are ignored when this is provided)
-       * "query": "some query string", (can be an empty string or null, but should be
-       * provided when no qid is provided)
-       * "pagesize": 10, (optional, default 10) the number of results to return per
-       * page
-       * "facetfilters": [
-       * ["dimension1", "path1", "path2"],
-       * ["dimension2", "path1", "path2"]
-       * ]
-       * }
-       */
-
       // TODO error handling
 
       var qidnode = json.at("/qid");
-
       if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
         this.queryid = qidnode.asText();
         // TODO: ignore the rest, except the pagesize
@@ -155,35 +141,34 @@ public class Querier {
 
       var pagenode = json.at("/pagesize");
       if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
-
         this.pageSize = pagenode.asInt();
       }
 
       var querynode = json.at("/query");
-
       if (!querynode.isMissingNode() && !querynode.isNull() && !querynode.asText().isEmpty()) {
         this.queryString = querynode.asText();
       }
 
-      for (var filter : json.at("/facetfilters")) {
+      for (var facet : json.at("/facets")) {
 
-        var dim = "";
-        var path = new LinkedList<String>();
+        var dimnode = facet.at("/dimension");
+        if (!dimnode.isMissingNode() && !dimnode.isNull() && !dimnode.asText().isEmpty()) {
+          this.facetdimensions.add(dimnode.asText());
 
-        var elems = filter.elements();
-        while (elems.hasNext()) {
-          var elem = elems.next();
-
-          if (dim.isEmpty()) {
-            dim = elem.asText();
-          } else {
-            path.add(elem.asText());
+          var filters = facet.at("/filters");
+          if (!filters.isMissingNode() && !filters.isNull() && filters.isArray()) {
+            for (var filter: filters) {
+              if (!filter.isMissingNode() && !filter.isNull() && filter.isArray()) {
+                var path = new LinkedList<String>();
+                for (var pathnode : filter) {
+                  if (!pathnode.isMissingNode() && !pathnode.isNull() && !pathnode.asText().isEmpty()) {
+                    path.add(pathnode.asText());
+                  }
+                }
+                facetfilters.add(new PathFilter(dimnode.asText(), path.toArray(new String[path.size()])));
+              }
+            }
           }
-        }
-
-        if (!dim.isEmpty()) {
-          var patharr = path.toArray(new String[path.size()]);
-          this.facetfilters.add(this.new PathFilter(dim, patharr));
         }
       }
     }
@@ -205,7 +190,7 @@ public class Querier {
     TopDocs topdocs = null;
     Query currentQuery = null;
 
-    // TODO Check if the index should be re-opened after a write operation
+    // TODO Check if the index should be re-opened after a write operation. We don't need that for now
 
     var bodybuf = Unpooled.directBuffer(8);
     var byteoutput = new ByteBufOutputStream(bodybuf);
@@ -246,6 +231,8 @@ public class Querier {
         var query = querybuilder.build();
         var dq = new DrillDownQuery(fconfig, query);
 
+        // TODO test the facet filters
+
         for (var filter : searchquery.facetfilters) {
           if (filter.path.length > 0) {
             dq.add(filter.dimension, filter.path);
@@ -267,7 +254,7 @@ public class Querier {
           gen.writeStringField("qid", searchstate.uuid.toString());
           gen.writeArrayFieldStart("facets");
 
-          for (var pathfilter : searchquery.facetfilters) {
+          for (var dimension : searchquery.facetdimensions) {
 
               // TODO: put hierarchical facets in nested documents: one per dimension
               /* 
@@ -279,8 +266,8 @@ public class Querier {
               */
 
             gen.writeStartObject();
-            gen.writeStringField("dimension", pathfilter.dimension);
-            writeFacetsRecurse(gen, result.facets, pathfilter.dimension);
+            gen.writeStringField("dimension", dimension);
+            writeFacetsRecurse(gen, result.facets, dimension);
             gen.writeEndObject();
           }
           gen.writeEndArray();
@@ -290,6 +277,7 @@ public class Querier {
       if (topdocs.scoreDocs.length > 0) {
 
         // Document result rendering. This is used for new and continued queries.
+        // TODO the number of highlights should be part of the query
 
         var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs,
             new int[] { 100 });
@@ -302,6 +290,8 @@ public class Querier {
           var doc = indexSearcher.storedFields().document(hit.doc);
 
           gen.writeStartObject();
+
+          // TODO: config which fields to output
 
           var title = doc.get("title");
           var uuid = doc.get("uuid");
@@ -347,8 +337,10 @@ public class Querier {
   }
 
   private void writeFacetsRecurse(com.fasterxml.jackson.core.JsonGenerator gen, org.apache.lucene.facet.Facets facets, String dimension, String... path) throws IOException {
+    
     var result = facets.getAllChildren(dimension, path);
     if (result == null) return;
+
     gen.writeArrayFieldStart("children");
     for (var lv : result.labelValues) {
       gen.writeStartObject();
@@ -357,6 +349,7 @@ public class Querier {
 
       var childPath = Arrays.copyOf(path, path.length + 1);
       childPath[path.length] = lv.label;
+    
       writeFacetsRecurse(gen, facets, dimension, childPath);
       
       gen.writeEndObject();
