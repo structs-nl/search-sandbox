@@ -33,7 +33,6 @@ public class Enlight {
   // - handle the command line args
   // - start the webserver
   // - handles the http requests (/query and /index /config)
-  // - handle logging (currently not used)
 
   // The Indexer and Querier contain the data / app specific code. This can be
   // generalized to abstract classes and app specific instances
@@ -63,11 +62,13 @@ public class Enlight {
       }
     });
 
+    // TODO remove these commandline options. Replace with ENV vars
+    // TODO: add a readonly option. This will disable ingesting
+
     Options options = new Options();
     options.addOption("path", true, "Data path");
     options.addOption("port", true, "Start server from port");
 
-    // TODO: add a readonly option. This will disable ingesting
 
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(options, args);
@@ -185,11 +186,7 @@ public class Enlight {
 
                 FileUpload fileUpload = (FileUpload) httpData;
                 if (fileUpload.isCompleted()) {
-
-                  // mapper.createParser(fileUpload.getFile());
-
                   indexer.index(mapper.readTree(fileUpload.getString()));
-
                 } else {
                   // Error
                   System.out.println("File upload not completed: " + fileUpload.getFilename());
@@ -216,18 +213,12 @@ public class Enlight {
 
         } else if (httpRequest.uri().startsWith("/config")) {
 
-          // put the json config here:
 
-          // - identifying field
-          // - default search field
-          // - Output fields
-          // - Facet fields
-          // - Text field config
 
         }
 
-        // After the request is handled, clean old search states
-        querier.searchstates.cleanup();
+        // TODO After the request is handled, clean old search states
+        // querier.searchstates.cleanup();
       }
     }
   }

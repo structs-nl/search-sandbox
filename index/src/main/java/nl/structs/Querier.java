@@ -13,6 +13,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.uuid.Generators;
+import com.fasterxml.jackson.core.JsonGenerator;
 
 import io.netty.buffer.ByteBufOutputStream;
 import io.netty.buffer.Unpooled;
@@ -29,7 +30,7 @@ import org.apache.lucene.util.IOUtils;
 
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Query;
-
+import org.apache.lucene.facet.Facets;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.BooleanClause;
@@ -44,7 +45,6 @@ import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
 import nl.structs.HighlightsFormatter.HighlightResult;
-import nl.structs.Querier.SearchQuery.PathFilter;
 
 public class Querier {
 
@@ -78,8 +78,6 @@ public class Querier {
   public void close() throws IOException {
     IOUtils.close(indexReader, taxoReader);
   }
-
-
   public class SearchStates {
     private Map<String, SearchState> states = new HashMap<String, SearchState>();
 
@@ -279,8 +277,7 @@ public class Querier {
         // Document result rendering. This is used for new and continued queries.
         // TODO the number of highlights should be part of the query
 
-        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs,
-            new int[] { 100 });
+        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs, new int[] { 100 });
         var contentHighlights = high.get("content");
 
         gen.writeArrayFieldStart("docs");
@@ -291,7 +288,7 @@ public class Querier {
 
           gen.writeStartObject();
 
-          // TODO: config which fields to output
+          // TODO the fields should be part of the query
 
           var title = doc.get("title");
           var uuid = doc.get("uuid");
@@ -316,7 +313,6 @@ public class Querier {
 
           gen.writeEndArray();
           gen.writeEndObject();
-
         }
         gen.writeEndArray();
       }
@@ -336,7 +332,7 @@ public class Querier {
     }
   }
 
-  private void writeFacetsRecurse(com.fasterxml.jackson.core.JsonGenerator gen, org.apache.lucene.facet.Facets facets, String dimension, String... path) throws IOException {
+  private void writeFacetsRecurse(JsonGenerator gen, Facets facets, String dimension, String... path) throws IOException {
     
     var result = facets.getAllChildren(dimension, path);
     if (result == null) return;

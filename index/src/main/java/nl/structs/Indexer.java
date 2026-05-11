@@ -95,7 +95,7 @@ class Indexer {
 
     fconfig = new FacetsConfig();
 
-    // Part of the dimension config
+    // TODO Part of the dimension config
 
     fconfig.setHierarchical("parents", true);
     fconfig.setMultiValued("parents", true);
@@ -116,6 +116,7 @@ class Indexer {
     objectMapper = new ObjectMapper();
 
     // synonym test
+    // TODO: add the Annotations
 
     synonymBuilder = new SynonymMap.Builder(true);
     synonymBuilder.add(new CharsRef("snaphanen"), new CharsRef("concept00001"), true);
@@ -167,10 +168,10 @@ class Indexer {
     /*
      * data in an array or a single record
      * go through the fields per record
-     * the records need to have the identifier field
      * 
-     * data type values: String, Text, Integer, Facet
-     * store the field value?
+     * "type": "string", "text, "integer", "facet", date, datetime, boolean
+     * "store": true/false
+     * "identifier": true/false (defaults to false)
      * 
      * in the config:
      * text options:
@@ -181,6 +182,8 @@ class Indexer {
     while (iterator.hasNext()) {
 
       JsonNode doc = iterator.next();
+
+      // TODO:
 
       JsonNode uuid = doc.at("/uuid");
       JsonNode title = doc.at("/title");
@@ -201,7 +204,6 @@ class Indexer {
       }
 
       luceneDoc.add(new Field("title", title.asText(), TextFieldType));
-
 
       JsonNode parents = doc.at("/parents");
 
