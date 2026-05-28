@@ -69,7 +69,6 @@ public class Enlight {
     options.addOption("path", true, "Data path");
     options.addOption("port", true, "Start server from port");
 
-
     CommandLineParser parser = new DefaultParser();
     CommandLine cmd = parser.parse(options, args);
 
@@ -99,7 +98,7 @@ public class Enlight {
 
       var port = cmd.getOptionValue("port");
       var bossGroup = new NioEventLoopGroup(1);
-      var workerGroup = new NioEventLoopGroup();
+      var workerGroup = new NioEventLoopGroup( 10);
 
       try {
 
@@ -186,7 +185,10 @@ public class Enlight {
 
                 FileUpload fileUpload = (FileUpload) httpData;
                 if (fileUpload.isCompleted()) {
-                  indexer.index(mapper.readTree(fileUpload.getString()));
+
+                  // TODO We assume a single document
+                  
+                  indexer.indexDocument(mapper.readTree(fileUpload.getString()));
                 } else {
                   // Error
                   System.out.println("File upload not completed: " + fileUpload.getFilename());

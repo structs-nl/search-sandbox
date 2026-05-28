@@ -1,12 +1,6 @@
 package nl.structs;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.nio.file.Paths;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.URI;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,10 +15,6 @@ import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
-
-import org.apache.lucene.analysis.synonym.SynonymGraphFilter;
-import org.apache.lucene.analysis.synonym.SynonymMap;
-import org.apache.lucene.util.CharsRef;
 
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
@@ -42,7 +32,6 @@ import org.apache.lucene.store.FSDirectory;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -52,9 +41,6 @@ import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.facet.FacetField;
-
-import org.apache.lucene.tests.analysis.TokenStreamToDot;
-import java.io.PrintWriter;
 
 class Indexer {
 
@@ -68,15 +54,10 @@ class Indexer {
   private Analyzer analyzer;
 
   private LinkedList<DateTimeFormatter> formatters;
-  private HttpClient httpClient;
   private ObjectMapper objectMapper;
-
-  private SynonymMap synonymMap;
-  private SynonymMap.Builder synonymBuilder;
 
   public static final FieldType TextFieldType = new FieldType();
 
-  
   // The config and data should be separated
   // The data gathering should be external and is already done in another script
 
@@ -112,17 +93,8 @@ class Indexer {
     iw = new IndexWriter(dir, iwc);
     dtw = new DirectoryTaxonomyWriter(taxdir);
 
-    httpClient = HttpClient.newHttpClient();
     objectMapper = new ObjectMapper();
 
-    // synonym test
-    // TODO: add the Annotations
-
-    synonymBuilder = new SynonymMap.Builder(true);
-    synonymBuilder.add(new CharsRef("snaphanen"), new CharsRef("concept00001"), true);
-    synonymBuilder.add(new CharsRef("axel\u0000anthonij\u0000rosenquest"), new CharsRef("person00001"), true);
-
-    synonymMap = synonymBuilder.build();
   }
 
   class CustomAnalyzer extends Analyzer {
@@ -137,7 +109,8 @@ class Indexer {
       src.setMaxTokenLength(255);
       TokenStream tok = new LowerCaseFilter(src);
 
-      tok = new SynonymGraphFilter(tok, synonymMap, true);
+      // TODO annotations
+
       // This filter encodes the length of the token in the payload
       tok = new PayloadTokenLengthFilter(tok);
 
@@ -154,7 +127,7 @@ class Indexer {
     }
   }
 
-  public void index(JsonNode json)
+  public void indexDocument(JsonNode doc)
       throws IOException, JsonProcessingException, InterruptedException {
 
     // formatters = new LinkedList<DateTimeFormatter>();
@@ -163,13 +136,11 @@ class Indexer {
     // DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
     // formatters.add(localIso);
 
-    Iterator<JsonNode> iterator = json.elements();
-
     /*
-     * data in an array or a single record
+     * process a single document
      * go through the fields per record
      * 
-     * "type": "string", "text, "integer", "facet", date, datetime, boolean
+     * "type": "string", "text, "facet", "date"
      * "store": true/false
      * "identifier": true/false (defaults to false)
      * 
@@ -179,45 +150,78 @@ class Indexer {
      * 
      */
 
-    while (iterator.hasNext()) {
+    var luceneDoc = new Document();
+    String identifyingField = "";
+    String identifyingValue = "";
 
-      JsonNode doc = iterator.next();
+    var fieldIterator = doc.iterator();
 
-      // TODO:
+    while (fieldIterator.hasNext()) {
+      var field = fieldIterator.next();
 
-      JsonNode uuid = doc.at("/uuid");
-      JsonNode title = doc.at("/title");
-      JsonNode type = doc.at("/type");
-      JsonNode texturl = doc.at("/texturl");
+      var nameNode = field.at("/name");
+      if (nameNode.isMissingNode() || nameNode.isEmpty()) {
+        // TODO error
 
-      System.out.println(texturl.asText());
+      }
+      var fieldName = nameNode.asText();
+      var fieldType = field.at("/type").asText("string"); // TODO test with missingNode
+      var fieldStore = field.at("/store").asBoolean(false); // TODO test with missingNode
+      var fieldIdentifer = field.at("/identifier").asBoolean(false); // TODO test with missingNode
 
-      Document luceneDoc = new Document();
+      var valueNode = field.at("/value");
 
-      luceneDoc.add(new StringField("uuid", uuid.asText(), Field.Store.YES));
-      luceneDoc.add(new StringField("type", type.asText(), Field.Store.YES));
+      // if (text != null && !text.isNull() && text.asText() != null &&
+      // !text.asText().isEmpty())
+      // luceneDoc.add(new Field("content", text.asText(), TextFieldType));
 
-      if (texturl != null && !texturl.isNull() && texturl.asText() != null && !texturl.asText().isEmpty()) {
+      if (fieldType.equals("string")) {
 
-        var fullText = resolveAndParseJson(texturl.asText());
-        luceneDoc.add(new Field("content", fullText, TextFieldType));
+        // TODO check that valueNode is a text
+
+        var store = Field.Store.NO;
+        if (fieldStore)
+          store = Field.Store.YES;
+
+        // TODO: shouldn't it be the same field?
+
+        if (fieldIdentifer) {
+          identifyingField = fieldName;
+          identifyingValue = valueNode.asText();
+        }
+
+        luceneDoc.add(new StringField(fieldName, valueNode.asText(), store));
       }
 
-      luceneDoc.add(new Field("title", title.asText(), TextFieldType));
+      if (fieldType.equals("facet")) {
 
-      JsonNode parents = doc.at("/parents");
+        // TODO this can be a value, a list of paths or a list of values
 
-      var parpath = new ArrayList<String>();
-      var pariter = parents.elements();
-      while (pariter.hasNext()) {
-        parpath.add(pariter.next().asText());
+        if (valueNode.isArray()) {
+          var valIt = valueNode.iterator();
+          while (valIt.hasNext()) {
+            var valueElem = valIt.next();
+
+            // TODO this can be a list of paths or a list of values
+            if (valueElem.isArray()) {
+              var parpath = new ArrayList<String>();
+              var pathIt = valueElem.iterator();
+              while (pathIt.hasNext()) {
+                var pathElem = pathIt.next();
+                parpath.add(pathElem.asText());
+              }
+
+              if (!parpath.isEmpty())
+                luceneDoc.add(new FacetField(fieldName, parpath.toArray(new String[0])));
+            }
+          }
+        }
       }
-      if (!parpath.isEmpty())
-        luceneDoc.add(new FacetField("parents", parpath.toArray(new String[0])));
-
-      iw.updateDocument(new Term("uuid", uuid.asText()), fconfig.build(dtw, luceneDoc));
-
     }
+
+    // TODO: check that identifying field and value are set
+
+    iw.updateDocument(new Term(identifyingField, identifyingValue), fconfig.build(dtw, luceneDoc));
 
     dtw.commit();
     iw.commit();
@@ -234,38 +238,6 @@ class Indexer {
     // String d = Integer.toString(zonedDateTime.getDayOfMonth());
     // luceneDoc.add(new FacetField(fieldname, y, m, d));
 
-  }
-
-  private String resolveAndParseJson(String urlString) {
-    try {
-      HttpRequest request = HttpRequest.newBuilder()
-          .uri(URI.create(urlString))
-          .GET()
-          .build();
-
-      HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-      if (response.statusCode() == 200) {
-
-        var text = "";
-        var json = objectMapper.readTree(response.body());
-
-        for (Iterator<JsonNode> it = json.elements(); it.hasNext();) {
-          var node = it.next();
-          if (node.isObject() && node.has("text")) {
-            text += "\n" + node.get("text").asText();
-          }
-        }
-        return text;
-
-      } else {
-        System.err.println("Failed to fetch URL " + urlString + ": HTTP " + response.statusCode());
-        return null;
-      }
-    } catch (Exception e) {
-      System.err.println("Error resolving URL " + urlString + ": " + e.getMessage());
-      return null;
-    }
   }
 
   public void close() throws IOException {
