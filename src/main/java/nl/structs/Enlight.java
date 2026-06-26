@@ -186,9 +186,9 @@ public class Enlight {
                 FileUpload fileUpload = (FileUpload) httpData;
                 if (fileUpload.isCompleted()) {
 
-                  // TODO We assume a single document
+                  var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
+                  indexer.indexDocument(jsonnode);
                   
-                  indexer.indexDocument(mapper.readTree(fileUpload.getString()));
                 } else {
                   // Error
                   System.out.println("File upload not completed: " + fileUpload.getFilename());
@@ -212,10 +212,6 @@ public class Enlight {
           lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
           // Add keepalive code
-
-        } else if (httpRequest.uri().startsWith("/config")) {
-
-
 
         }
 

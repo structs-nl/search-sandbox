@@ -155,6 +155,7 @@ public class Querier {
 
           var filters = facet.at("/filters");
           if (!filters.isMissingNode() && !filters.isNull() && filters.isArray()) {
+
             for (var filter: filters) {
               if (!filter.isMissingNode() && !filter.isNull() && filter.isArray()) {
                 var path = new LinkedList<String>();
@@ -265,6 +266,7 @@ public class Querier {
 
             gen.writeStartObject();
             gen.writeStringField("dimension", dimension);
+
             writeFacetsRecurse(gen, result.facets, dimension);
             gen.writeEndObject();
           }

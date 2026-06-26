@@ -4,7 +4,6 @@ import java.io.IOException;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import main.java.nl.structs.PayloadTokenLengthFilter;
 
@@ -16,9 +15,14 @@ import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 
+import org.apache.lucene.facet.range.LongRange;
+import org.apache.lucene.search.LongValuesSource;
+import org.apache.lucene.facet.range.LongRangeFacetCounts;
+import org.apache.lucene.document.LongRangeDocValuesField;
+import org.apache.lucene.facet.facetset.LongFacetSet;
+
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
-
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
@@ -29,17 +33,15 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
+import java.time.Period;
+
 import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.FieldType;
 
 import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
 import org.apache.lucene.facet.FacetField;
 
 class Indexer {
@@ -53,13 +55,7 @@ class Indexer {
   private DirectoryTaxonomyWriter dtw;
   private Analyzer analyzer;
 
-  private LinkedList<DateTimeFormatter> formatters;
-  private ObjectMapper objectMapper;
-
   public static final FieldType TextFieldType = new FieldType();
-
-  // The config and data should be separated
-  // The data gathering should be external and is already done in another script
 
   static {
     TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
@@ -92,8 +88,6 @@ class Indexer {
 
     iw = new IndexWriter(dir, iwc);
     dtw = new DirectoryTaxonomyWriter(taxdir);
-
-    objectMapper = new ObjectMapper();
 
   }
 
@@ -130,54 +124,90 @@ class Indexer {
   public void indexDocument(JsonNode doc)
       throws IOException, JsonProcessingException, InterruptedException {
 
-    // formatters = new LinkedList<DateTimeFormatter>();
-    // formatters.add(DateTimeFormatter.ISO_DATE_TIME);
-    // DateTimeFormatter localIso =
-    // DateTimeFormatter.ISO_LOCAL_DATE_TIME.withZone(ZoneId.systemDefault());
-    // formatters.add(localIso);
-
-    /*
-     * process a single document
-     * go through the fields per record
-     * 
-     * "type": "string", "text, "facet", "date"
-     * "store": true/false
-     * "identifier": true/false (defaults to false)
-     * 
-     * in the config:
-     * text options:
-     * facet options: multivalued, hierarchical, drilldown, dimcount
-     * 
-     */
-
     var luceneDoc = new Document();
+
     String identifyingField = "";
     String identifyingValue = "";
 
-    var fieldIterator = doc.iterator();
+    if (! doc.isArray()) {
+      // TODO error
+    }
 
-    while (fieldIterator.hasNext()) {
-      var field = fieldIterator.next();
+    for (var field : doc){
 
       var nameNode = field.at("/name");
-      if (nameNode.isMissingNode() || nameNode.isEmpty()) {
+      if (nameNode.isMissingNode() || nameNode.isEmpty() || !nameNode.isTextual()) {
         // TODO error
 
       }
+      
       var fieldName = nameNode.asText();
-      var fieldType = field.at("/type").asText("string"); // TODO test with missingNode
-      var fieldStore = field.at("/store").asBoolean(false); // TODO test with missingNode
-      var fieldIdentifer = field.at("/identifier").asBoolean(false); // TODO test with missingNode
 
       var valueNode = field.at("/value");
+      if (valueNode.isMissingNode() || valueNode.isEmpty()) {
+        // TODO error
 
-      // if (text != null && !text.isNull() && text.asText() != null &&
-      // !text.asText().isEmpty())
-      // luceneDoc.add(new Field("content", text.asText(), TextFieldType));
+      }
 
-      if (fieldType.equals("string")) {
+      var fieldType = field.at("/type").asText("string");             // TODO test with missingNode
+      var fieldStore = field.at("/store").asBoolean(false);           // TODO test with missingNode
+      var fieldIdentifer = field.at("/identifier").asBoolean(false);  // TODO test with missingNode
 
-        // TODO check that valueNode is a text
+      if (fieldType.equals("text")) {
+
+        if (!valueNode.isTextual()) {
+          // Raise error
+
+        }
+        
+        luceneDoc.add(new Field(fieldName, valueNode.asText(), TextFieldType));
+
+      } else if (fieldType.equals("daterange")) {
+
+        var fromStr = valueNode.at("/from").textValue();
+        var fromDate = LocalDate.parse(fromStr);
+        var fromEpochDay = fromDate.toEpochDay();
+
+        var toStr = valueNode.at("/to").textValue();
+        var toDate = LocalDate.parse(toStr);
+        var toEpochDay = toDate.toEpochDay();
+      
+        // century quarter bucket specific; TODO: generalize:
+        // x period per century if years > 0
+        // x period per year if years = 0
+
+        var bucketPeriod = Period.parse("P25Y");
+
+        // The start year of the century of the from date
+        var fromYearCentury = (fromDate.getYear() / 100) * 100;
+        var fromCenturyStart = LocalDate.of(fromYearCentury, 1, 1);
+        var fromYearCentQuarter = ((fromDate.getYear() - fromYearCentury ) / 25);
+
+        // The start year of the century of the to date
+        var toYearCentury = (toDate.getYear() / 100) * 100;
+        var toCenturyStart = LocalDate.of(toYearCentury, 1, 1);
+        var toYearCentQuarter = ((toDate.getYear() - toYearCentury ) / 25);
+
+        var bucketFirstStartDate = fromCenturyStart.plus(bucketPeriod.multipliedBy(fromYearCentQuarter));
+        var bucketLastStartDate = toCenturyStart.plus(bucketPeriod.multipliedBy(toYearCentQuarter));
+
+        // General from here
+        var periods = new ArrayList<LocalDate>();
+        var current = bucketFirstStartDate;
+
+        while (current.isBefore(bucketLastStartDate) || current.isEqual(bucketLastStartDate)) {
+          periods.add(current);
+          current = current.plus(bucketPeriod);
+        }
+        
+        // 1607-01-01 - 1796-12-31
+
+      } else if (fieldType.equals("string")) {
+
+        if (!valueNode.isTextual()) {
+          // Raise error
+
+        }
 
         var store = Field.Store.NO;
         if (fieldStore)
@@ -191,23 +221,18 @@ class Indexer {
         }
 
         luceneDoc.add(new StringField(fieldName, valueNode.asText(), store));
-      }
 
-      if (fieldType.equals("facet")) {
+      } else if (fieldType.equals("facet")) {
 
         // TODO this can be a value, a list of paths or a list of values
 
         if (valueNode.isArray()) {
-          var valIt = valueNode.iterator();
-          while (valIt.hasNext()) {
-            var valueElem = valIt.next();
-
+          for (var valueElem : valueNode) {
             // TODO this can be a list of paths or a list of values
             if (valueElem.isArray()) {
+              
               var parpath = new ArrayList<String>();
-              var pathIt = valueElem.iterator();
-              while (pathIt.hasNext()) {
-                var pathElem = pathIt.next();
+              for (var pathElem : valueElem){
                 parpath.add(pathElem.asText());
               }
 
@@ -216,6 +241,9 @@ class Indexer {
             }
           }
         }
+      } else {
+        // TODO: error:
+
       }
     }
 
@@ -225,19 +253,6 @@ class Indexer {
 
     dtw.commit();
     iw.commit();
-
-    // String datetext = node.asText();
-    // ZonedDateTime zonedDateTime = tryPatterns(datetext, formatters);
-    // String encodedDateTime =
-    // DateTools.dateToString(Date.from(zonedDateTime.toInstant()),DateTools.Resolution.MILLISECOND);
-
-    // luceneDoc.add(new StringField(fieldname, encodedDateTime, Field.Store.NO));
-
-    // String y = Integer.toString(zonedDateTime.getYear());
-    // String m = Integer.toString(zonedDateTime.getMonthValue());
-    // String d = Integer.toString(zonedDateTime.getDayOfMonth());
-    // luceneDoc.add(new FacetField(fieldname, y, m, d));
-
   }
 
   public void close() throws IOException {
@@ -246,17 +261,5 @@ class Indexer {
 
     if (iw != null)
       iw.close();
-  }
-
-  public static ZonedDateTime tryPatterns(String date, List<DateTimeFormatter> formatters) {
-    for (DateTimeFormatter formatter : formatters) {
-      try {
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, formatter);
-        return zonedDateTime;
-      } catch (Exception e) {
-
-      }
-    }
-    throw new IllegalArgumentException("Could not parse " + date);
   }
 }
