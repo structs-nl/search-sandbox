@@ -1,0 +1,19 @@
+[project]
+name = "enlight_ingest"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Robert Goené",email = "robert@goene.nl"}
+]
+requires-python = ">=3.10"
+dependencies = [
+    "boto3 (>=1.43.36,<2.0.0)",
+    "orjson (>=3.11.9,<4.0.0)"
+]
+
+[tool.poetry]
+package-mode = false
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

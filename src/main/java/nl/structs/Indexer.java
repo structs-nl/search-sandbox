@@ -2,17 +2,15 @@ package nl.structs;
 
 import java.io.IOException;
 
+// TODO: check namespace
+import main.java.nl.structs.AnnotateFilter.Annotation;
+import main.java.nl.structs.AnnotatedField;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
-import main.java.nl.structs.PayloadTokenLengthFilter;
-
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
-import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.analysis.core.LowerCaseFilter;
-
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.document.Document;
 
 import org.apache.lucene.facet.range.LongRange;
@@ -24,7 +22,6 @@ import org.apache.lucene.facet.facetset.LongFacetSet;
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
-import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -37,12 +34,16 @@ import java.time.LocalDate;
 import java.time.Period;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
+
 
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldType;
 
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.facet.FacetField;
+import org.apache.lucene.document.TextField;
 
 class Indexer {
 
@@ -55,19 +56,6 @@ class Indexer {
   private DirectoryTaxonomyWriter dtw;
   private Analyzer analyzer;
 
-  public static final FieldType TextFieldType = new FieldType();
-
-  static {
-    TextFieldType.setIndexOptions(IndexOptions.DOCS_AND_FREQS_AND_POSITIONS_AND_OFFSETS);
-    TextFieldType.setTokenized(true);
-    TextFieldType.setStored(true);
-    TextFieldType.setStoreTermVectors(true);
-    TextFieldType.setStoreTermVectorOffsets(true);
-    TextFieldType.setStoreTermVectorPositions(true);
-    TextFieldType.setStoreTermVectorPayloads(true);
-    TextFieldType.freeze();
-  };
-
   Indexer(FSDirectory dir, FSDirectory taxdir) throws IOException {
 
     fconfig = new FacetsConfig();
@@ -79,8 +67,7 @@ class Indexer {
     fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
     fconfig.setRequireDimCount("parents", true);
 
-    // analyzer = new StandardAnalyzer();
-    analyzer = new CustomAnalyzer();
+    analyzer = new StandardAnalyzer();
 
     iwc = new IndexWriterConfig(analyzer);
     iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
@@ -89,36 +76,6 @@ class Indexer {
     iw = new IndexWriter(dir, iwc);
     dtw = new DirectoryTaxonomyWriter(taxdir);
 
-  }
-
-  class CustomAnalyzer extends Analyzer {
-
-    // Same as StandardAnalyzer, only with the SynonymFilter and the
-    // PayloadTokenFilter added
-
-    @Override
-    protected TokenStreamComponents createComponents(String fieldName) {
-
-      final StandardTokenizer src = new StandardTokenizer();
-      src.setMaxTokenLength(255);
-      TokenStream tok = new LowerCaseFilter(src);
-
-      // TODO annotations
-
-      // This filter encodes the length of the token in the payload
-      tok = new PayloadTokenLengthFilter(tok);
-
-      return new TokenStreamComponents(
-          r -> {
-            src.setMaxTokenLength(255);
-            src.setReader(r);
-          }, tok);
-    }
-
-    @Override
-    protected TokenStream normalize(String fieldName, TokenStream in) {
-      return new LowerCaseFilter(in);
-    }
   }
 
   public void indexDocument(JsonNode doc)
@@ -153,14 +110,19 @@ class Indexer {
       var fieldStore = field.at("/store").asBoolean(false);           // TODO test with missingNode
       var fieldIdentifer = field.at("/identifier").asBoolean(false);  // TODO test with missingNode
 
-      if (fieldType.equals("text")) {
+      if (fieldType.equals("annotatedtext")) {
 
         if (!valueNode.isTextual()) {
           // Raise error
 
         }
-        
-        luceneDoc.add(new Field(fieldName, valueNode.asText(), TextFieldType));
+
+        var annotations = new LinkedList<Annotation>();
+
+        // TODO: go through the annotations in the ingest json and add them
+        // We assume they are all within the char range of the text and ordered
+
+        luceneDoc.add(new AnnotatedField(fieldName, valueNode.asText(), annotations));
 
       } else if (fieldType.equals("daterange")) {
 
@@ -172,9 +134,11 @@ class Indexer {
         var toDate = LocalDate.parse(toStr);
         var toEpochDay = toDate.toEpochDay();
       
-        // century quarter bucket specific; TODO: generalize:
+        // century quarter bucket specific
         // x period per century if years > 0
         // x period per year if years = 0
+
+        // TODO: move this to the indexing script
 
         var bucketPeriod = Period.parse("P25Y");
 
@@ -220,7 +184,7 @@ class Indexer {
           identifyingValue = valueNode.asText();
         }
 
-        luceneDoc.add(new StringField(fieldName, valueNode.asText(), store));
+        luceneDoc.add(new StringField(fieldName, valueNode.asText(), Store.YES));
 
       } else if (fieldType.equals("facet")) {
 
