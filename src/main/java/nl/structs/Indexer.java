@@ -2,6 +2,7 @@ package nl.structs;
 
 import java.io.IOException;
 
+import main.java.nl.structs.AnnotateFilter;
 // TODO: check namespace
 import main.java.nl.structs.AnnotateFilter.Annotation;
 import main.java.nl.structs.AnnotatedField;
@@ -87,50 +88,106 @@ class Indexer {
     String identifyingValue = "";
 
     if (! doc.isArray()) {
-      // TODO error
+      throw new IllegalArgumentException(pointer("/", "document payload must be a JSON array of fields"));
     }
 
+    var fieldIndex = 0;
     for (var field : doc){
+      var fieldPointer = pointer("/" + fieldIndex);
 
       var nameNode = field.at("/name");
       if (nameNode.isMissingNode() || nameNode.isEmpty() || !nameNode.isTextual()) {
-        // TODO error
-
+        throw new IllegalArgumentException(pointer(fieldPointer + "/name", "each field must contain a textual name"));
       }
       
       var fieldName = nameNode.asText();
 
       var valueNode = field.at("/value");
       if (valueNode.isMissingNode() || valueNode.isEmpty()) {
-        // TODO error
-
+        throw new IllegalArgumentException(pointer(fieldPointer + "/value", "field '" + fieldName + "' is missing a value"));
       }
 
-      var fieldType = field.at("/type").asText("string");             // TODO test with missingNode
-      var fieldStore = field.at("/store").asBoolean(false);           // TODO test with missingNode
-      var fieldIdentifer = field.at("/identifier").asBoolean(false);  // TODO test with missingNode
+      var typeNode = field.at("/type");
+      if (typeNode.isMissingNode() || typeNode.isEmpty() || !typeNode.isTextual()) {
+        throw new IllegalArgumentException(pointer(fieldPointer + "/type", "each field must contain a textual type"));
+      }
+
+      var storeNode = field.at("/store");
+      if (storeNode.isMissingNode() || storeNode.isEmpty() || !storeNode.isBoolean()) {
+        throw new IllegalArgumentException(pointer(fieldPointer + "/store", "each field must contain a boolean store flag"));
+      }
+
+      var identifierNode = field.at("/identifier");
+      if (identifierNode.isMissingNode() || identifierNode.isEmpty() || !identifierNode.isBoolean()) {
+        throw new IllegalArgumentException(pointer(fieldPointer + "/identifier", "each field must contain a boolean identifier flag"));
+      }
+
+      var fieldType = typeNode.asText();
+      var fieldStore = storeNode.asBoolean();
+      var fieldIdentifer = identifierNode.asBoolean();
 
       if (fieldType.equals("annotatedtext")) {
 
         if (!valueNode.isTextual()) {
-          // Raise error
+          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "annotated text field '" + fieldName + "' must be textual"));
+        }
 
+        var fieldAnn = field.at("/annotations");
+
+        if (fieldAnn.isMissingNode() || !fieldAnn.isArray()) {
+          throw new IllegalArgumentException(pointer(fieldPointer + "/annotations", "annotated text field '" + fieldName + "' must contain an annotations array"));
         }
 
         var annotations = new LinkedList<Annotation>();
+        var annotationIndex = 0;
 
-        // TODO: go through the annotations in the ingest json and add them
+        for (var ann : fieldAnn) {
+            var annotationPointer = pointer(fieldPointer + "/annotations/" + annotationIndex);
+            var tagNode = ann.at("/tag");
+            var fromNode = ann.at("/from");
+            var toNode = ann.at("/to");
+
+            if (tagNode.isMissingNode() || !tagNode.isTextual()) {
+              throw new IllegalArgumentException(pointer(annotationPointer + "/tag", "annotation tag must be textual"));
+            }
+
+            if (fromNode.isMissingNode() || !fromNode.canConvertToInt()) {
+              throw new IllegalArgumentException(pointer(annotationPointer + "/from", "annotation 'from' must be an integer"));
+            }
+
+            if (toNode.isMissingNode() || !toNode.canConvertToInt()) {
+              throw new IllegalArgumentException(pointer(annotationPointer + "/to", "annotation 'to' must be an integer"));
+            }
+
+            var tag = tagNode.asText();
+            var from = fromNode.asInt();
+            var to = toNode.asInt();
+            annotations.add(new Annotation(from, to, tag));
+            annotationIndex++;
+        }
+        
         // We assume they are all within the char range of the text and ordered
 
         luceneDoc.add(new AnnotatedField(fieldName, valueNode.asText(), annotations));
 
       } else if (fieldType.equals("daterange")) {
 
-        var fromStr = valueNode.at("/from").textValue();
+        if (!valueNode.isObject()) {
+          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "date range field '" + fieldName + "' must be an object"));
+        }
+
+        var fromNode = valueNode.at("/from");
+        var toNode = valueNode.at("/to");
+
+        if (!fromNode.isTextual() || !toNode.isTextual()) {
+          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "date range field '" + fieldName + "' must contain textual 'from' and 'to' values"));
+        }
+
+        var fromStr = fromNode.textValue();
         var fromDate = LocalDate.parse(fromStr);
         var fromEpochDay = fromDate.toEpochDay();
 
-        var toStr = valueNode.at("/to").textValue();
+        var toStr = toNode.textValue();
         var toDate = LocalDate.parse(toStr);
         var toEpochDay = toDate.toEpochDay();
       
@@ -169,8 +226,7 @@ class Indexer {
       } else if (fieldType.equals("string")) {
 
         if (!valueNode.isTextual()) {
-          // Raise error
-
+          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "string field '" + fieldName + "' must be textual"));
         }
 
         var store = Field.Store.NO;
@@ -188,13 +244,12 @@ class Indexer {
 
       } else if (fieldType.equals("facet")) {
 
-        // TODO this can be a value, a list of paths or a list of values
-
         if (valueNode.isArray()) {
           for (var valueElem : valueNode) {
+            
             // TODO this can be a list of paths or a list of values
+            
             if (valueElem.isArray()) {
-              
               var parpath = new ArrayList<String>();
               for (var pathElem : valueElem){
                 parpath.add(pathElem.asText());
@@ -204,14 +259,19 @@ class Indexer {
                 luceneDoc.add(new FacetField(fieldName, parpath.toArray(new String[0])));
             }
           }
+        } else {
+          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "facet field '" + fieldName + "' must be an array"));
         }
       } else {
-        // TODO: error:
-
+        throw new IllegalArgumentException(pointer(fieldPointer + "/type", "unsupported field type '" + fieldType + "' for field '" + fieldName + "'"));
       }
+
+      fieldIndex++;
     }
 
-    // TODO: check that identifying field and value are set
+    if (identifyingField.isEmpty() || identifyingValue.isEmpty()) {
+      throw new IllegalArgumentException(pointer("/", "document payload must contain exactly one identifying field"));
+    }
 
     iw.updateDocument(new Term(identifyingField, identifyingValue), fconfig.build(dtw, luceneDoc));
 
@@ -225,5 +285,13 @@ class Indexer {
 
     if (iw != null)
       iw.close();
+  }
+
+  private String pointer(String jsonPointer) {
+    return jsonPointer;
+  }
+
+  private String pointer(String jsonPointer, String message) {
+    return jsonPointer + ": " + message;
   }
 }

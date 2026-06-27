@@ -11,10 +11,13 @@ import io.netty.handler.codec.http.multipart.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
+import static io.netty.handler.codec.http.HttpResponseStatus.BAD_REQUEST;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.concurrent.ExecutionException;
 import java.net.URISyntaxException;
@@ -165,51 +168,69 @@ public class Enlight {
           var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
           lastContentFuture.addListener(ChannelFutureListener.CLOSE);
 
-          // Add keepalive code
-          // Do we need to close the buffer?
-
-          // Error handling
+          // TODO Add keepalive code
+          // TODO Do we need to close the buffer?
 
         } else if (httpRequest.uri().startsWith("/ingest")) {
 
           String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
+          var responseStatus = OK;
+          var responseMessage = "";
 
           // Handle form-data decoding
           if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
               || contentType.contains("multipart/form-data"))) {
 
-            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
+            try {
+              HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
 
-            for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
-              if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+              for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
+                if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
 
-                FileUpload fileUpload = (FileUpload) httpData;
-                if (fileUpload.isCompleted()) {
+                  FileUpload fileUpload = (FileUpload) httpData;
+                  if (fileUpload.isCompleted()) {
 
-                  var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
-                  indexer.indexDocument(jsonnode);
-                  
-                } else {
-                  // Error
-                  System.out.println("File upload not completed: " + fileUpload.getFilename());
+                    var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
+                    indexer.indexDocument(jsonnode);
+                    
+                  } else {
+                    responseStatus = BAD_REQUEST;
+                    responseMessage = "File upload not completed: " + fileUpload.getFilename();
+                    System.out.println("File upload not completed: " + fileUpload.getFilename());
+                  }
                 }
               }
-            }
 
-            decoder.cleanFiles();
-            decoder.destroy();
+              decoder.cleanFiles();
+              decoder.destroy();
+            } catch (Exception e) {
+              responseStatus = BAD_REQUEST;
+              responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid ingest payload";
+              System.out.println("Invalid ingest payload: " + e.getMessage());
+            }
           }
 
           // Error handling
 
-          var response = new DefaultHttpResponse(HTTP_1_1, OK);
-          // response.headers().set(HttpHeaderNames.CONTENT_TYPE,
-          // HttpHeaderValues.APPLICATION_JSON);
-          // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-          ctx.write(response);
+          if (responseStatus == BAD_REQUEST) {
+            var errorBody = mapper.createObjectNode();
+            errorBody.put("error", responseMessage.isEmpty() ? "Invalid ingest payload" : responseMessage);
 
-          var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+            var response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
+            response.content().writeBytes(errorBody.toString().getBytes(StandardCharsets.UTF_8));
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+            response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+          } else {
+            var response = new DefaultHttpResponse(HTTP_1_1, responseStatus);
+            // response.headers().set(HttpHeaderNames.CONTENT_TYPE,
+            // HttpHeaderValues.APPLICATION_JSON);
+            // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+            ctx.write(response);
+
+            var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
+            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+          }
 
           // Add keepalive code
 
