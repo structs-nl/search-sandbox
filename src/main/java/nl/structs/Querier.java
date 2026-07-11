@@ -328,6 +328,8 @@ public class Querier {
       return bodybuf;
 
     } catch (Exception e) {
+
+      // TODO: send to client
       System.out.println(e.toString());
       System.out.println(Arrays.toString(e.getStackTrace()));
       return bodybuf;

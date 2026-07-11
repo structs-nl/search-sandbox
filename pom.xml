@@ -29,11 +29,19 @@
             <version>2.17.1</version>
         </dependency>
         
+        
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.17.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-csv</artifactId>
+            <version>2.17.1</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.fasterxml.uuid</groupId>
@@ -82,6 +90,13 @@
             <artifactId>lucene-highlighter</artifactId>
 	    <version>10.2.2</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-suggest</artifactId>
+	    <version>10.2.2</version>
+        </dependency>
+
 
 
     </dependencies>

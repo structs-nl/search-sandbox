@@ -30,10 +30,12 @@ import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.IOUtils;
 
 import java.time.LocalDate;
 import java.time.Period;
-
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -200,6 +202,7 @@ class Indexer {
         var bucketPeriod = Period.parse("P25Y");
 
         // The start year of the century of the from date
+
         var fromYearCentury = (fromDate.getYear() / 100) * 100;
         var fromCenturyStart = LocalDate.of(fromYearCentury, 1, 1);
         var fromYearCentQuarter = ((fromDate.getYear() - fromYearCentury ) / 25);
@@ -280,11 +283,7 @@ class Indexer {
   }
 
   public void close() throws IOException {
-    if (dtw != null)
-      dtw.close();
-
-    if (iw != null)
-      iw.close();
+    IOUtils.close(dtw, iw);
   }
 
   private String pointer(String jsonPointer) {

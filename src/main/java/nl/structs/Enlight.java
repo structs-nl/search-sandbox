@@ -32,21 +32,15 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Enlight {
 
-  // This class does the following
-  // - handle the command line args
-  // - start the webserver
-  // - handles the http requests (/query and /index /config)
-
-  // The Indexer and Querier contain the data / app specific code. This can be
-  // generalized to abstract classes and app specific instances
-
   protected ObjectMapper mapper = new ObjectMapper();
 
+  protected Suggester suggester;
   protected Indexer indexer;
   protected Querier querier;
   protected String datapath;
   protected FSDirectory indexdir;
   protected FSDirectory taxdir;
+  protected FSDirectory suggestdir;
   protected BufferedWriter logwriter;
 
   public Enlight(String[] args)
@@ -79,6 +73,7 @@ public class Enlight {
       datapath = cmd.getOptionValue("path");
       indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
       taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
+      suggestdir = FSDirectory.open(Paths.get(datapath + "/suggest/"));
 
       // TODO check if the directories exist. Create if not so
 
@@ -96,6 +91,9 @@ public class Enlight {
 
     indexer = new Indexer(indexdir, taxdir);
     querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
+    suggester = new Suggester(suggestdir);
+
+    // suggester.ingest("./testdata/autocomplete_places.csv");
 
     if (cmd.hasOption("port")) {
 
@@ -106,6 +104,8 @@ public class Enlight {
       try {
 
         var portnr = Integer.parseInt(port);
+
+        // TODO: add threads
 
         var b = new ServerBootstrap();
         b.option(ChannelOption.SO_BACKLOG, 1024);
@@ -120,10 +120,18 @@ public class Enlight {
       } catch (InterruptedException e) {
         e.printStackTrace();
       } finally {
-        System.out.println("Stop!");
+        
+        System.out.println("Closing..");
+
         querier.close();
+        suggester.close();
+        indexer.close();
+        
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
+
+        System.out.println("Closed");
+
       }
     }
 
@@ -144,6 +152,11 @@ public class Enlight {
     @Override
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
         throws Exception {
+
+      var responseStatus = OK;
+      var responseMessage = "";
+
+    try {
       if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
 
         HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
@@ -174,54 +187,33 @@ public class Enlight {
         } else if (httpRequest.uri().startsWith("/ingest")) {
 
           String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
-          var responseStatus = OK;
-          var responseMessage = "";
 
-          // Handle form-data decoding
+          // TODO: we should also be able to handle a URL passed
+          // What kind of content type?
+
+          // Handle form-data
+
           if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
               || contentType.contains("multipart/form-data"))) {
 
-            try {
-              HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
+            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
+            for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
+              if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
 
-              for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
-                if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                FileUpload fileUpload = (FileUpload) httpData;
+                if (fileUpload.isCompleted()) {
 
-                  FileUpload fileUpload = (FileUpload) httpData;
-                  if (fileUpload.isCompleted()) {
-
-                    var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
-                    indexer.indexDocument(jsonnode);
-                    
-                  } else {
-                    responseStatus = BAD_REQUEST;
-                    responseMessage = "File upload not completed: " + fileUpload.getFilename();
-                    System.out.println("File upload not completed: " + fileUpload.getFilename());
-                  }
+                  var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
+                  indexer.indexDocument(jsonnode);
+                  
+                } else {
+                  responseStatus = BAD_REQUEST;
+                  responseMessage = "File upload not completed: " + fileUpload.getFilename();
+                  throw new IllegalArgumentException(responseMessage);
                 }
               }
-
-              decoder.cleanFiles();
-              decoder.destroy();
-            } catch (Exception e) {
-              responseStatus = BAD_REQUEST;
-              responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid ingest payload";
-              System.out.println("Invalid ingest payload: " + e.getMessage());
             }
-          }
 
-          // Error handling
-
-          if (responseStatus == BAD_REQUEST) {
-            var errorBody = mapper.createObjectNode();
-            errorBody.put("error", responseMessage.isEmpty() ? "Invalid ingest payload" : responseMessage);
-
-            var response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
-            response.content().writeBytes(errorBody.toString().getBytes(StandardCharsets.UTF_8));
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-            response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-          } else {
             var response = new DefaultHttpResponse(HTTP_1_1, responseStatus);
             // response.headers().set(HttpHeaderNames.CONTENT_TYPE,
             // HttpHeaderValues.APPLICATION_JSON);
@@ -230,15 +222,37 @@ public class Enlight {
 
             var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
             lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+
+            decoder.cleanFiles();
+            decoder.destroy();
           }
-
-          // Add keepalive code
-
         }
 
+      }
+
+      } catch (Exception e) {
+        responseStatus = BAD_REQUEST;
+        responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid ingest payload";
+      }
+      
+      // TODO: extend error handling.
+
+      if (responseStatus == BAD_REQUEST) {
+
+        var errorBody = mapper.createObjectNode();
+        errorBody.put("error", responseMessage);
+        var response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
+        response.content().writeBytes(errorBody.toString().getBytes(StandardCharsets.UTF_8));
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+        response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+      }
+
+        // Add keepalive code
+
+  
         // TODO After the request is handled, clean old search states
         // querier.searchstates.cleanup();
-      }
     }
   }
 

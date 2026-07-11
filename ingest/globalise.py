@@ -2,8 +2,6 @@ import boto3
 import gzip
 import orjson
 
-ranges = []
-
 session = boto3.Session(profile_name='surf')
 s3_client = session.client('s3')
 
@@ -36,4 +34,5 @@ for content in objects:
 
             start = jsonbody["date_start"]
             end = jsonbody["date_end"]
+
             inv = jsonbody["inventory_number"]
