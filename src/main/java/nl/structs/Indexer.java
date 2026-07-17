@@ -247,11 +247,11 @@ class Indexer {
 
       } else if (fieldType.equals("facet")) {
 
+        // This is always a list of lists
+        // Otherwise, we cannot distinguish a path from a list of values
+
         if (valueNode.isArray()) {
           for (var valueElem : valueNode) {
-            
-            // TODO this can be a list of paths or a list of values
-            
             if (valueElem.isArray()) {
               var parpath = new ArrayList<String>();
               for (var pathElem : valueElem){

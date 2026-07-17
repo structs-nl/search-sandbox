@@ -1,28 +1,126 @@
-[
 {
-    "name": "content",
-    "type": "annotatedtext",
-    "store": true,
-    "value": "string",
-    "annotations": [
+
+    "date_end": "1782-12-31",
+    "date_start": "1782-01-01",
+    "id": "14a5886a-2c52-49a7-8823-ab50b6011bae",
+    "inventory_number": "3598",
+    "isil": "NL-HaNA",
+    "inventory": "1.04.02",
+    "mets": "https://service.archief.nl/gaf/api/mets/v1/8e8c4d8e-c405-4eff-a339-6b55ba55bc95",
+
+    "documents":[
         {
-            "tag": "",
-            "from": 0,
-            "to": 1
-        },
-        {
-            "tag": "",
-            "from": 0,
-            "to": 1
-        }
+            "fields": [
+            {
+                "name": "identifier",
+                "type": "string",
+                "store": true,
+                "value": "f09b7bf7-a28d-4fc8-902c-d09526b6addd"
+            },
+            {
+                "name": "name",
+                "type": "string",
+                "store": true,
+                "value": "NL-HaNA_1.04.02_3598_0015-0102"
+            },
+            {
+                "name": "title",
+                "type": "string",
+                "store": true,
+                "value": "NL-HaNA_1.04.02_3598_0015-0102"
+            },
+
+            {
+                "name": "settlement",
+                "type": "string",
+                "store": true,
+                "value": ""
+            },
+
+            {
+                "name": "pages",
+                "type": "integer",
+                "store": true,
+                "value": 88
+            },
+
+            {
+                "name": "start_page",
+                "type": "string",
+                "store": true,
+                "value": "NL-HaNA_1.04.02_3598_0015"
+            },
+
+            {
+                "name": "end_page",
+                "type": "string",
+                "store": true,
+                "value": "NL-HaNA_1.04.02_3598_0102"
+            },
+
+            {
+                "name": "inventorynumber",
+                "type": "string",
+                "store": true,
+                "value": "3598"
+            },
+
+            {
+                "name": "content",
+                "type": "annotatedtext",
+                "store": true,
+                "value": "string",
+                
+                "DataPositionSelector": {
+                    "source": "https://data.globalise.huygens.knaw.nl/hdl:20.500.14722/inventory:3598.txt",
+                    "start": 967,
+                    "end": 136043
+                },
+
+                "annotations": [
+                    {
+                        "tag": "HumanMadeObject",
+                        "from": 14,
+                        "to": 21,
+                        "text": "brieven"
+                    },
+                    {
+                        "tag": "Place",
+                        "from": 45,
+                        "to": 52,
+                        "text": "Batavia"
+                    },
+
+                    {
+                        "tag": "GLOB2_894",
+                        "from": 45,
+                        "to": 52,
+                        "text": "Batavia"
+                    }
+
+                ]
+            },
+            {
+                "name": "date", 
+                "type": "daterange",
+                "value": {
+                    "from": "1782-01-01",
+                    "to": "1782-12-31"
+                }
+            },
+            {
+                "name": "ead", 
+                "type": "facet",
+                "value": [
+                    [
+                        "fe991488-df7c-5f5d-b3f1-df0a19cc7eef", 
+                        "f6efc351-a0c2-5362-b466-dc3decb92e6b", 
+                        "e32509ec-358f-5b38-b95a-0ba044bb55a0",
+                        "96639a6b-7050-5f35-810b-cbcab8564143",
+                        "472631cf-1a78-5a67-b88f-ea1f315c4238"
+                    ]
+                ]
+            }
+        ]}
     ]
-},
-{
-    "name": "date", 
-    "type": "daterange",
-    "value": {
-        "from": "",
-        "to": ""
-    }
 }
-]

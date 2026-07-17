@@ -18,8 +18,6 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Suggester {
 
-    // https://lucene.apache.org/core/10_2_2/suggest/org/apache/lucene/search/suggest/analyzing/AnalyzingInfixSuggester.html
-
     protected Analyzer analyzer;
     protected AnalyzingInfixSuggester infixSuggester;
 
@@ -84,6 +82,10 @@ public class Suggester {
 
     }
 
+    private static boolean isBlank(String value) {
+        return value == null || value.isEmpty();
+    }
+
     public void suggest(String infix, String context)
         throws IOException, JsonProcessingException {
 
@@ -95,7 +97,4 @@ public class Suggester {
         infixSuggester.close();
     }
 
-    private static boolean isBlank(String value) {
-        return value == null || value.trim().isEmpty();
-    }
 }
