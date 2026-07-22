@@ -1,5 +1,4 @@
 package nl.structs;
-
 import java.io.IOException;
 
 // TODO: check namespace
@@ -25,7 +24,6 @@ import org.apache.lucene.document.LongRangeDocValuesField;
 import org.apache.lucene.facet.facetset.LongFacetSet;
 
 import org.apache.lucene.facet.FacetsConfig;
-import org.apache.lucene.facet.FacetsConfig.DrillDownTermsIndexing;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
@@ -47,6 +45,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Path;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
@@ -69,16 +68,13 @@ class Indexer {
   private Analyzer analyzer;
 
   Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper) throws IOException {
+    this(dir, taxdir, mapper, null);
+  }
+
+  Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper, Path facetConfigPath) throws IOException {
 
     this.mapper = mapper;
-    fconfig = new FacetsConfig();
-
-    // TODO Part of the dimension config
-
-    fconfig.setHierarchical("parents", true);
-    fconfig.setMultiValued("parents", true);
-    fconfig.setDrillDownTermsIndexing("parents", DrillDownTermsIndexing.ALL_PATHS_NO_DIM);
-    fconfig.setRequireDimCount("parents", true);
+    fconfig = FacetsConfigHelper.loadFacetConfig(facetConfigPath);
 
     analyzer = new StandardAnalyzer();
 
@@ -97,8 +93,10 @@ class Indexer {
       var uri = new URI(url);
       var conn = uri.toURL().openConnection();
       var inputstream = conn.getInputStream();
+      
+      var encoding = conn.getContentEncoding();
 
-      if (conn.getContentEncoding() == "gzip") {
+      if (encoding.equals("gzip")) {
         inputstream = new GZIPInputStream(inputstream);
       }
     

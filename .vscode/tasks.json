@@ -1,0 +1,14 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Enlight",
+      "type": "shell",
+      "command": "mvn -q -DskipTests compile exec:java -Dexec.mainClass=nl.structs.Enlight -Dexec.args='--path ./data --port 8080'",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

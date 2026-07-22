@@ -49,6 +49,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.lucene.store.FSDirectory;
+import org.apache.lucene.util.IOUtils;
 
 public class Enlight {
 
@@ -69,8 +70,22 @@ public class Enlight {
     Runtime.getRuntime().addShutdownHook(new Thread() {
       public void run() {
         try {
-          System.out.println("\nClose index");
-          indexer.close();
+        
+          if (indexer != null ){
+            System.out.println("\nClose indexer");
+            indexer.close();
+          }
+
+          if (querier != null ){
+            System.out.println("\nClose querier");
+            querier.close();
+          }
+
+          if (suggester != null){
+            System.out.println("\nClose suggester");
+            suggester.close();
+          }
+ 
           System.out.println("Bye!");
         } catch (Exception e) {
           System.out.println(e.getMessage());
@@ -81,15 +96,13 @@ public class Enlight {
     // TODO: add a readonly option. This will disable ingesting
 
     Options options = new Options();
-    options.addOption(Option.builder("p")
-        .longOpt("path")
+    options.addOption(Option.builder("path")
         .hasArg()
         .required(true)
         .desc("Data path")
         .build());
 
-    options.addOption(Option.builder("P")
-        .longOpt("port")
+    options.addOption(Option.builder("port")
         .hasArg()
         .required(true)
         .desc("Start server from port")
@@ -129,7 +142,7 @@ public class Enlight {
     // FileWriter fw = new FileWriter(file, true);
     // logwriter = new BufferedWriter(fw);
 
-    indexer = new Indexer(indexdir, taxdir, mapper);
+    indexer = new Indexer(indexdir, taxdir, mapper, resolveFacetConfigPath(datapath));
     querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
     suggester = new Suggester(suggestdir);
 
@@ -171,6 +184,23 @@ public class Enlight {
       System.out.println("Closed");
 
     }
+  }
+
+  private Path resolveFacetConfigPath(String datapath) {
+    var dataDir = Paths.get(datapath);
+    var candidates = new Path[] {
+        dataDir.resolve("facets.yaml"),
+        Paths.get("facets.yaml"),
+        Paths.get("ingest").resolve("facets.yaml")
+    };
+
+    for (var candidate : candidates) {
+      if (Files.exists(candidate)) {
+        return candidate;
+      }
+    }
+
+    return dataDir.resolve("facets.yaml");
   }
 
   private void ensureDirectoryExists(Path path) throws IOException {
@@ -234,6 +264,7 @@ public class Enlight {
 
       // TODO After the request is handled, clean old search states
       // querier.searchstates.cleanup();
+    }
   }
 
   // TODO Add keepalive code ?
@@ -269,10 +300,9 @@ public class Enlight {
     ctx.write(response);
     ctx.write(new DefaultHttpContent(bodybuf));
     ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+  
   }
-
   public static void main(String[] args) throws Exception {
     new Enlight(args);
   }
-}
 }
