@@ -2,13 +2,27 @@ package nl.structs;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.*;
-
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.http.DefaultHttpContent;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 
@@ -18,17 +32,22 @@ import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.nio.charset.StandardCharsets;
-
-import java.util.concurrent.ExecutionException;
-import java.net.URISyntaxException;
-
-import java.io.IOException;
 import java.io.BufferedWriter;
-
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.lucene.store.FSDirectory;
 
 public class Enlight {
@@ -38,10 +57,9 @@ public class Enlight {
   protected Suggester suggester;
   protected Indexer indexer;
   protected Querier querier;
-  protected String datapath;
-  protected FSDirectory indexdir;
-  protected FSDirectory taxdir;
-  protected FSDirectory suggestdir;
+
+  protected FSDirectory indexdir, taxdir, suggestdir;
+
   protected BufferedWriter logwriter;
 
   public Enlight(String[] args)
@@ -60,28 +78,49 @@ public class Enlight {
       }
     });
 
-    // TODO remove these commandline options. Replace with ENV vars
     // TODO: add a readonly option. This will disable ingesting
 
     Options options = new Options();
-    options.addOption("path", true, "Data path");
-    options.addOption("port", true, "Start server from port");
+    options.addOption(Option.builder("p")
+        .longOpt("path")
+        .hasArg()
+        .required(true)
+        .desc("Data path")
+        .build());
+
+    options.addOption(Option.builder("P")
+        .longOpt("port")
+        .hasArg()
+        .required(true)
+        .desc("Start server from port")
+        .build());
 
     CommandLineParser parser = new DefaultParser();
-    CommandLine cmd = parser.parse(options, args);
+    CommandLine cmd;
 
-    if (cmd.hasOption("path")) {
-      datapath = cmd.getOptionValue("path");
-      indexdir = FSDirectory.open(Paths.get(datapath + "/index/"));
-      taxdir = FSDirectory.open(Paths.get(datapath + "/tax/"));
-      suggestdir = FSDirectory.open(Paths.get(datapath + "/suggest/"));
-
-      // TODO check if the directories exist. Create if not so
-
-    } else {
-      // Error message
-      return;
+    try {
+      cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+      System.err.println(e.getMessage());
+      HelpFormatter formatter = new HelpFormatter();
+      formatter.printHelp("Enlight", options);
+      throw e;
     }
+
+    var datapath = cmd.getOptionValue("path");
+    var port = cmd.getOptionValue("port");
+
+    var indexpath = Paths.get(datapath + "/index/");
+    ensureDirectoryExists(indexpath);
+    indexdir = FSDirectory.open(indexpath);
+
+    var taxpath = Paths.get(datapath + "/tax/");
+    ensureDirectoryExists(taxpath);
+    taxdir = FSDirectory.open(taxpath);
+
+    var suggestpath = Paths.get(datapath + "/suggest/");
+    ensureDirectoryExists(suggestpath);
+    suggestdir = FSDirectory.open(suggestpath);
 
     // File file = new File(datapath + "/log.txt");
     // if (!file.exists())
@@ -96,47 +135,48 @@ public class Enlight {
 
     // suggester.ingest("./testdata/autocomplete_places.csv");
 
-    if (cmd.hasOption("port")) {
+    var bossGroup = new NioEventLoopGroup(1);
+    var workerGroup = new NioEventLoopGroup( 10);
 
-      var port = cmd.getOptionValue("port");
-      var bossGroup = new NioEventLoopGroup(1);
-      var workerGroup = new NioEventLoopGroup( 10);
+    try {
 
-      try {
+      var portnr = Integer.parseInt(port);
 
-        var portnr = Integer.parseInt(port);
+      // TODO: add threads
 
-        // TODO: add threads
+      var b = new ServerBootstrap();
+      b.option(ChannelOption.SO_BACKLOG, 1024);
+      b.group(bossGroup, workerGroup)
+          .channel(NioServerSocketChannel.class)
+          .handler(new LoggingHandler(LogLevel.INFO))
+          .childHandler(new HTTPInitializer());
 
-        var b = new ServerBootstrap();
-        b.option(ChannelOption.SO_BACKLOG, 1024);
-        b.group(bossGroup, workerGroup)
-            .channel(NioServerSocketChannel.class)
-            .handler(new LoggingHandler(LogLevel.INFO))
-            .childHandler(new HTTPInitializer());
+      var ch = b.bind(portnr).sync().channel();
 
-        var ch = b.bind(portnr).sync().channel();
+      ch.closeFuture().sync();
+      
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    } finally {
+      
+      System.out.println("Closing..");
 
-        ch.closeFuture().sync();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      } finally {
-        
-        System.out.println("Closing..");
+      querier.close();
+      suggester.close();
+      indexer.close();
+      
+      bossGroup.shutdownGracefully();
+      workerGroup.shutdownGracefully();
 
-        querier.close();
-        suggester.close();
-        indexer.close();
-        
-        bossGroup.shutdownGracefully();
-        workerGroup.shutdownGracefully();
+      System.out.println("Closed");
 
-        System.out.println("Closed");
-
-      }
     }
+  }
 
-    System.exit(0);
+  private void ensureDirectoryExists(Path path) throws IOException {
+    if (!Files.exists(path)) {
+      Files.createDirectories(path);
+    }
   }
 
   protected class HTTPInitializer extends ChannelInitializer<SocketChannel> {
@@ -154,13 +194,13 @@ public class Enlight {
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
         throws Exception {
 
-      if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
-        
-        writeAllowMethods(ctx);
+      try {
 
-      } else if (httpRequest.method().equals(HttpMethod.PUT)) {
+        if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
 
-        try {
+          writeAllowMethods(ctx);
+
+        } else if (httpRequest.method().equals(HttpMethod.PUT)) {
 
           if (httpRequest.uri().startsWith("/query")) {
             // TODO make non blocking
@@ -168,30 +208,38 @@ public class Enlight {
             var bodybuf = querier.search(httpRequest.content());
             write(ctx, OK, bodybuf);
 
-          } else if (httpRequest.uri().startsWith("/ingest")) {
+          } else if (httpRequest.uri().startsWith("/suggest")) {
+
+          } else if (httpRequest.uri().startsWith("/ingest/doc")) {
             // TODO make non blocking
 
             var content = httpRequest.content().toString(StandardCharsets.UTF_8);
             indexer.indexURL(content);
             write(ctx, OK);
 
+          } else if (httpRequest.uri().startsWith("/ingest/suggest")) {
+
           } else {
             write (ctx, BAD_REQUEST, "Invalid request");
           }
 
-        } catch (Exception e) {
-          var responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid request";
-          write (ctx, BAD_REQUEST, responseMessage);
+        } else {
+            write (ctx, BAD_REQUEST, "Invalid request");
         }
 
-        // TODO After the request is handled, clean old search states
-        // querier.searchstates.cleanup();
-    }  
+      } catch (Exception e) {
+        var responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid request";
+        write (ctx, BAD_REQUEST, responseMessage);
+      }
+
+      // TODO After the request is handled, clean old search states
+      // querier.searchstates.cleanup();
   }
 
   // TODO Add keepalive code ?
   // TODO Do we need to close the buffer?
   // TODO merge methods?
+
 
   private static void writeAllowMethods(ChannelHandlerContext ctx) {
     var response = new DefaultHttpResponse(HTTP_1_1, OK);
