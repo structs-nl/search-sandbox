@@ -2,12 +2,16 @@ package nl.structs;
 
 import java.io.IOException;
 
-import main.java.nl.structs.AnnotateFilter;
 // TODO: check namespace
+
 import main.java.nl.structs.AnnotateFilter.Annotation;
 import main.java.nl.structs.AnnotatedField;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.netty.buffer.ByteBuf;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -38,7 +42,11 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.LinkedList;
-
+import java.util.zip.GZIPInputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.charset.UnsupportedCharsetException;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
@@ -50,6 +58,7 @@ import org.apache.lucene.document.TextField;
 
 class Indexer {
 
+  protected ObjectMapper mapper;
   public Directory dir;
   public Directory taxdir;
   public FacetsConfig fconfig;
@@ -59,8 +68,9 @@ class Indexer {
   private DirectoryTaxonomyWriter dtw;
   private Analyzer analyzer;
 
-  Indexer(FSDirectory dir, FSDirectory taxdir) throws IOException {
+  Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper) throws IOException {
 
+    this.mapper = mapper;
     fconfig = new FacetsConfig();
 
     // TODO Part of the dimension config
@@ -79,6 +89,21 @@ class Indexer {
     iw = new IndexWriter(dir, iwc);
     dtw = new DirectoryTaxonomyWriter(taxdir);
 
+  }
+
+  public void indexURL(String url)
+      throws IOException, URISyntaxException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
+
+      var uri = new URI(url);
+      var conn = uri.toURL().openConnection();
+      var inputstream = conn.getInputStream();
+
+      if (conn.getContentEncoding() == "gzip") {
+        inputstream = new GZIPInputStream(inputstream);
+      }
+    
+      var json = mapper.readTree(inputstream);
+      indexDocument(json);
   }
 
   public void indexDocument(JsonNode doc)
@@ -120,9 +145,9 @@ class Indexer {
       }
 
       var identifierNode = field.at("/identifier");
-      if (identifierNode.isMissingNode() || identifierNode.isEmpty() || !identifierNode.isBoolean()) {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/identifier", "each field must contain a boolean identifier flag"));
-      }
+      //if (identifierNode.isMissingNode() || identifierNode.isEmpty() || !identifierNode.isBoolean()) {
+      //  throw new IllegalArgumentException(pointer(fieldPointer + "/identifier", "each field must contain a boolean identifier flag"));
+      //}
 
       var fieldType = typeNode.asText();
       var fieldStore = storeNode.asBoolean();

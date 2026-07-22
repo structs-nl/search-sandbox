@@ -252,21 +252,10 @@ public class Querier {
           var searchstate = searchstates.add(currentQuery, topdocs.scoreDocs[topdocs.scoreDocs.length - 1]);
           gen.writeStringField("qid", searchstate.uuid.toString());
           gen.writeArrayFieldStart("facets");
-
+          
           for (var dimension : searchquery.facetdimensions) {
-
-              // TODO: put hierarchical facets in nested documents: one per dimension
-              /* 
-              var res = indexSearcher.search(new TermQuery(new Term("uuid", lv.label)), 1);
-              for (var hit : res.scoreDocs) {
-                var doc = indexSearcher.storedFields().document(hit.doc);
-                gen.writeStringField("title", doc.get("title"));
-              }
-              */
-
             gen.writeStartObject();
             gen.writeStringField("dimension", dimension);
-
             writeFacetsRecurse(gen, result.facets, dimension);
             gen.writeEndObject();
           }

@@ -1,12 +1,13 @@
 package nl.structs;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.multipart.*;
 
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
@@ -89,7 +90,7 @@ public class Enlight {
     // FileWriter fw = new FileWriter(file, true);
     // logwriter = new BufferedWriter(fw);
 
-    indexer = new Indexer(indexdir, taxdir);
+    indexer = new Indexer(indexdir, taxdir, mapper);
     querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
     suggester = new Suggester(suggestdir);
 
@@ -153,110 +154,77 @@ public class Enlight {
     public void channelRead0(ChannelHandlerContext ctx, FullHttpRequest httpRequest)
         throws Exception {
 
-      var responseStatus = OK;
-      var responseMessage = "";
-
-    try {
       if (httpRequest.method().equals(HttpMethod.OPTIONS)) {
-
-        HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-        // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-        response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
-        ctx.write(response);
-
-        ChannelFuture lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-        lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+        
+        writeAllowMethods(ctx);
 
       } else if (httpRequest.method().equals(HttpMethod.PUT)) {
-        if (httpRequest.uri().startsWith("/query")) {
 
-          var bodybuf = querier.search(httpRequest.content());
+        try {
 
-          var response = new DefaultHttpResponse(HTTP_1_1, OK);
-          response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-          // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-          ctx.write(response);
-          ctx.write(new DefaultHttpContent(bodybuf));
+          if (httpRequest.uri().startsWith("/query")) {
+            // TODO make non blocking
 
-          var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-          lastContentFuture.addListener(ChannelFutureListener.CLOSE);
+            var bodybuf = querier.search(httpRequest.content());
+            write(ctx, OK, bodybuf);
 
-          // TODO Add keepalive code
-          // TODO Do we need to close the buffer?
+          } else if (httpRequest.uri().startsWith("/ingest")) {
+            // TODO make non blocking
 
-        } else if (httpRequest.uri().startsWith("/ingest")) {
+            var content = httpRequest.content().toString(StandardCharsets.UTF_8);
+            indexer.indexURL(content);
+            write(ctx, OK);
 
-          String contentType = httpRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
-
-          // TODO: we should also be able to handle a URL passed
-          // What kind of content type?
-
-          // Handle form-data
-
-          if (contentType != null && (contentType.contains("application/x-www-form-urlencoded")
-              || contentType.contains("multipart/form-data"))) {
-
-            HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(httpRequest);
-            for (InterfaceHttpData httpData : decoder.getBodyHttpDatas()) {
-              if (httpData.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-
-                FileUpload fileUpload = (FileUpload) httpData;
-                if (fileUpload.isCompleted()) {
-
-                  var jsonnode = mapper.readTree(fileUpload.getByteBuf().array());
-                  indexer.indexDocument(jsonnode);
-                  
-                } else {
-                  responseStatus = BAD_REQUEST;
-                  responseMessage = "File upload not completed: " + fileUpload.getFilename();
-                  throw new IllegalArgumentException(responseMessage);
-                }
-              }
-            }
-
-            var response = new DefaultHttpResponse(HTTP_1_1, responseStatus);
-            // response.headers().set(HttpHeaderNames.CONTENT_TYPE,
-            // HttpHeaderValues.APPLICATION_JSON);
-            // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
-            ctx.write(response);
-
-            var lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT);
-            lastContentFuture.addListener(ChannelFutureListener.CLOSE);
-
-            decoder.cleanFiles();
-            decoder.destroy();
+          } else {
+            write (ctx, BAD_REQUEST, "Invalid request");
           }
+
+        } catch (Exception e) {
+          var responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid request";
+          write (ctx, BAD_REQUEST, responseMessage);
         }
 
-      }
-
-      } catch (Exception e) {
-        responseStatus = BAD_REQUEST;
-        responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid ingest payload";
-      }
-      
-      // TODO: extend error handling.
-
-      if (responseStatus == BAD_REQUEST) {
-
-        var errorBody = mapper.createObjectNode();
-        errorBody.put("error", responseMessage);
-        var response = new DefaultFullHttpResponse(HTTP_1_1, BAD_REQUEST);
-        response.content().writeBytes(errorBody.toString().getBytes(StandardCharsets.UTF_8));
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-        response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-      }
-
-        // Add keepalive code
-
-  
         // TODO After the request is handled, clean old search states
         // querier.searchstates.cleanup();
-    }
+    }  
+  }
+
+  // TODO Add keepalive code ?
+  // TODO Do we need to close the buffer?
+  // TODO merge methods?
+
+  private static void writeAllowMethods(ChannelHandlerContext ctx) {
+    var response = new DefaultHttpResponse(HTTP_1_1, OK);
+    // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+    response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_METHODS, "GET, POST, PUT");
+    ctx.write(response);
+    ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  private static void write(ChannelHandlerContext ctx, HttpResponseStatus responseStatus) {
+    var response = new DefaultFullHttpResponse(HTTP_1_1, responseStatus);
+    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  private static void write(ChannelHandlerContext ctx, HttpResponseStatus responseStatus, String responseMessage) {
+    var response = new DefaultFullHttpResponse(HTTP_1_1, responseStatus);
+    response.content().writeBytes(responseMessage.getBytes(StandardCharsets.UTF_8));
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.TEXT_PLAIN);
+    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
+    ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+  }
+
+  private static void write(ChannelHandlerContext ctx, HttpResponseStatus responseStatus, ByteBuf bodybuf) {
+    var response = new DefaultHttpResponse(HTTP_1_1, responseStatus);
+    response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+    // response.headers().set(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
+    ctx.write(response);
+    ctx.write(new DefaultHttpContent(bodybuf));
+    ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
   }
 
   public static void main(String[] args) throws Exception {
     new Enlight(args);
   }
+}
 }
