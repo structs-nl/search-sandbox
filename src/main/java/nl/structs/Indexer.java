@@ -17,12 +17,6 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.document.Document;
 
-import org.apache.lucene.facet.range.LongRange;
-import org.apache.lucene.search.LongValuesSource;
-import org.apache.lucene.facet.range.LongRangeFacetCounts;
-import org.apache.lucene.document.LongRangeDocValuesField;
-import org.apache.lucene.facet.facetset.LongFacetSet;
-
 import org.apache.lucene.facet.FacetsConfig;
 import org.apache.lucene.facet.taxonomy.directory.DirectoryTaxonomyWriter;
 import org.apache.lucene.index.IndexWriter;
@@ -52,29 +46,24 @@ import org.apache.lucene.document.Field.Store;
 import org.apache.lucene.document.FieldType;
 
 import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.IntField;
 import org.apache.lucene.facet.FacetField;
 import org.apache.lucene.document.TextField;
 
 class Indexer {
 
-  protected ObjectMapper mapper;
-  public Directory dir;
-  public Directory taxdir;
-  public FacetsConfig fconfig;
+  private ObjectMapper mapper;
+  private FacetsConfig fconfig;
 
   private IndexWriterConfig iwc;
   private IndexWriter iw;
   private DirectoryTaxonomyWriter dtw;
   private Analyzer analyzer;
 
-  Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper) throws IOException {
-    this(dir, taxdir, mapper, null);
-  }
-
-  Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper, Path facetConfigPath) throws IOException {
+  Indexer(FSDirectory dir, FSDirectory taxdir, ObjectMapper mapper, FacetsConfig facetsConfig) throws IOException {
 
     this.mapper = mapper;
-    fconfig = FacetsConfigHelper.loadFacetConfig(facetConfigPath);
+    this.fconfig = facetsConfig;
 
     analyzer = new StandardAnalyzer();
 
@@ -90,61 +79,109 @@ class Indexer {
   public void indexURL(String url)
       throws IOException, URISyntaxException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
 
-      var uri = new URI(url);
-      var conn = uri.toURL().openConnection();
-      var inputstream = conn.getInputStream();
-      
-      var encoding = conn.getContentEncoding();
+      // TODO: we can also support a list of URL's, separated by a newline
 
+      var uri = new URI(url);
+
+      var conn = uri.toURL().openConnection();
+      var encoding = conn.getContentEncoding();
+      var inputstream = conn.getInputStream();
+    
       if (encoding.equals("gzip")) {
         inputstream = new GZIPInputStream(inputstream);
       }
     
-      var json = mapper.readTree(inputstream);
-      indexDocument(json);
+      indexDocuments(mapper.readTree(inputstream), url + "#");
   }
 
-  public void indexDocument(JsonNode doc)
+  public void indexDocuments(JsonNode json, String pointerprefix)
+      throws IOException, JsonProcessingException, InterruptedException {
+
+      // The json can contain 
+      // 1) a single document: a "fields" field with an array of fields
+      // 2) a "documents" field with an array of objects with a "fields" field
+
+      if (json.has("documents")) {
+        // a documents object with an array of documents
+        var documents = json.get("documents");
+
+        var docIndex = 0;
+        for (var doc : documents) {
+          var docPointer = pointerprefix + "/documents/"  + docIndex;
+
+          if (doc.has("fields")){
+          var fields = doc.get("fields");
+            if (fields.isArray()) {
+              indexFields(fields, docPointer + "/fields");
+            } else {
+              throw new IllegalArgumentException("the fields object must contain an array");
+            }
+          }
+          docIndex++;
+        }
+
+      } else if (json.has("fields")){
+        //  a single document with an array of fields
+
+        var fields = json.get("fields");
+        if (fields.isArray()) {
+          indexFields(fields, pointerprefix + "/fields");
+        } else {
+          throw new IllegalArgumentException("the fields object must contain an array");
+        }
+      } else {
+        throw new IllegalArgumentException("the top level must be a documents or fields field");
+      }
+  }
+
+  public void indexFields(JsonNode doc, String pointerprefix)
       throws IOException, JsonProcessingException, InterruptedException {
 
     var luceneDoc = new Document();
+
+    // TODO check the parsing of a document and adjust the facet config
+    // TODO: error when a facet is not in the config?
 
     String identifyingField = "";
     String identifyingValue = "";
 
     if (! doc.isArray()) {
-      throw new IllegalArgumentException(pointer("/", "document payload must be a JSON array of fields"));
+      throw new IllegalArgumentException("the document must be a JSON array of fields");
     }
 
     var fieldIndex = 0;
     for (var field : doc){
-      var fieldPointer = pointer("/" + fieldIndex);
+      var fieldPointer = pointerprefix + "/" + fieldIndex;
 
       var nameNode = field.at("/name");
-      if (nameNode.isMissingNode() || nameNode.isEmpty() || !nameNode.isTextual()) {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/name", "each field must contain a textual name"));
+      if (nameNode.isMissingNode() || !nameNode.isTextual()) {
+        throw new IllegalArgumentException(fieldPointer + "/name" +  ": each field must contain a textual name");
       }
       
       var fieldName = nameNode.asText();
 
       var valueNode = field.at("/value");
-      if (valueNode.isMissingNode() || valueNode.isEmpty()) {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/value", "field '" + fieldName + "' is missing a value"));
+      if (valueNode.isMissingNode()) {
+        throw new IllegalArgumentException(fieldPointer + "/value" + ": field '" + fieldName + "' is missing a value");
       }
 
       var typeNode = field.at("/type");
-      if (typeNode.isMissingNode() || typeNode.isEmpty() || !typeNode.isTextual()) {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/type", "each field must contain a textual type"));
+      if (typeNode.isMissingNode() || !typeNode.isTextual()) {
+        throw new IllegalArgumentException(fieldPointer + "/type: each field must contain a textual type");
       }
 
       var storeNode = field.at("/store");
-      if (storeNode.isMissingNode() || storeNode.isEmpty() || !storeNode.isBoolean()) {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/store", "each field must contain a boolean store flag"));
-      }
+
+      // TODO: default store option
+      // Date ranges are currently not set in the files
+
+      //if (storeNode.isMissingNode() || !storeNode.isBoolean()) {
+      //  throw new IllegalArgumentException(fieldPointer + "/store: each field must contain a boolean store flag");
+      //}
 
       var identifierNode = field.at("/identifier");
       //if (identifierNode.isMissingNode() || identifierNode.isEmpty() || !identifierNode.isBoolean()) {
-      //  throw new IllegalArgumentException(pointer(fieldPointer + "/identifier", "each field must contain a boolean identifier flag"));
+      //  throw new IllegalArgumentException(fieldPointer + "/identifier: each field must contain a boolean identifier flag");
       //}
 
       var fieldType = typeNode.asText();
@@ -154,34 +191,34 @@ class Indexer {
       if (fieldType.equals("annotatedtext")) {
 
         if (!valueNode.isTextual()) {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "annotated text field '" + fieldName + "' must be textual"));
+          throw new IllegalArgumentException(fieldPointer + "/value: annotated text field '" + fieldName + "' must be textual");
         }
 
         var fieldAnn = field.at("/annotations");
 
         if (fieldAnn.isMissingNode() || !fieldAnn.isArray()) {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/annotations", "annotated text field '" + fieldName + "' must contain an annotations array"));
+          throw new IllegalArgumentException(fieldPointer + "/annotations: annotated text field '" + fieldName + "' must contain an annotations array");
         }
 
         var annotations = new LinkedList<Annotation>();
         var annotationIndex = 0;
 
         for (var ann : fieldAnn) {
-            var annotationPointer = pointer(fieldPointer + "/annotations/" + annotationIndex);
+            var annotationPointer = fieldPointer + "/annotations/" + annotationIndex;
             var tagNode = ann.at("/tag");
             var fromNode = ann.at("/from");
             var toNode = ann.at("/to");
 
             if (tagNode.isMissingNode() || !tagNode.isTextual()) {
-              throw new IllegalArgumentException(pointer(annotationPointer + "/tag", "annotation tag must be textual"));
+              throw new IllegalArgumentException(annotationPointer + "/tag: annotation tag must be textual");
             }
 
             if (fromNode.isMissingNode() || !fromNode.canConvertToInt()) {
-              throw new IllegalArgumentException(pointer(annotationPointer + "/from", "annotation 'from' must be an integer"));
+              throw new IllegalArgumentException(annotationPointer + "/from: annotation 'from' must be an integer");
             }
 
             if (toNode.isMissingNode() || !toNode.canConvertToInt()) {
-              throw new IllegalArgumentException(pointer(annotationPointer + "/to", "annotation 'to' must be an integer"));
+              throw new IllegalArgumentException(annotationPointer + "/to: annotation 'to' must be an integer");
             }
 
             var tag = tagNode.asText();
@@ -198,14 +235,14 @@ class Indexer {
       } else if (fieldType.equals("daterange")) {
 
         if (!valueNode.isObject()) {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "date range field '" + fieldName + "' must be an object"));
+          throw new IllegalArgumentException(fieldPointer + "/value: date range field '" + fieldName + "' must be an object");
         }
 
         var fromNode = valueNode.at("/from");
         var toNode = valueNode.at("/to");
 
         if (!fromNode.isTextual() || !toNode.isTextual()) {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "date range field '" + fieldName + "' must contain textual 'from' and 'to' values"));
+          throw new IllegalArgumentException(fieldPointer + "/value: date range field '" + fieldName + "' must contain textual 'from' and 'to' values");
         }
 
         var fromStr = fromNode.textValue();
@@ -252,7 +289,7 @@ class Indexer {
       } else if (fieldType.equals("string")) {
 
         if (!valueNode.isTextual()) {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "string field '" + fieldName + "' must be textual"));
+          throw new IllegalArgumentException(fieldPointer + "/value: string field '" + fieldName + "' must be textual");
         }
 
         var store = Field.Store.NO;
@@ -285,18 +322,29 @@ class Indexer {
                 luceneDoc.add(new FacetField(fieldName, parpath.toArray(new String[0])));
             }
           }
+
+          
         } else {
-          throw new IllegalArgumentException(pointer(fieldPointer + "/value", "facet field '" + fieldName + "' must be an array"));
+          throw new IllegalArgumentException(fieldPointer + "/value: facet field '" + fieldName + "' must be an array");
         }
+
+      } else if (fieldType.equals("integer")) {
+
+        if (!valueNode.isInt()) {
+          throw new IllegalArgumentException(fieldPointer + "/value: integer field '" + fieldName + "' must be an integer");
+        }
+
+        luceneDoc.add(new IntField(fieldName, valueNode.asInt(), Store.YES));
+
       } else {
-        throw new IllegalArgumentException(pointer(fieldPointer + "/type", "unsupported field type '" + fieldType + "' for field '" + fieldName + "'"));
+        throw new IllegalArgumentException(fieldPointer + "/type: unsupported field type '" + fieldType + "' for field '" + fieldName + "'");
       }
 
       fieldIndex++;
     }
 
     if (identifyingField.isEmpty() || identifyingValue.isEmpty()) {
-      throw new IllegalArgumentException(pointer("/", "document payload must contain exactly one identifying field"));
+      throw new IllegalArgumentException(pointerprefix + ": document payload must contain exactly one identifying field");
     }
 
     iw.updateDocument(new Term(identifyingField, identifyingValue), fconfig.build(dtw, luceneDoc));
@@ -307,13 +355,5 @@ class Indexer {
 
   public void close() throws IOException {
     IOUtils.close(dtw, iw);
-  }
-
-  private String pointer(String jsonPointer) {
-    return jsonPointer;
-  }
-
-  private String pointer(String jsonPointer, String message) {
-    return jsonPointer + ": " + message;
   }
 }

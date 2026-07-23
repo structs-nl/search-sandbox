@@ -50,6 +50,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.IOUtils;
+import org.apache.lucene.facet.FacetsConfig;
+
 
 public class Enlight {
 
@@ -57,6 +59,7 @@ public class Enlight {
 
   protected Suggester suggester;
   protected Indexer indexer;
+  protected FacetsConfig fconfig;
   protected Querier querier;
 
   protected FSDirectory indexdir, taxdir, suggestdir;
@@ -94,6 +97,8 @@ public class Enlight {
     });
 
     // TODO: add a readonly option. This will disable ingesting
+
+    // TODO add facetconfig path
 
     Options options = new Options();
     options.addOption(Option.builder("path")
@@ -142,8 +147,12 @@ public class Enlight {
     // FileWriter fw = new FileWriter(file, true);
     // logwriter = new BufferedWriter(fw);
 
-    indexer = new Indexer(indexdir, taxdir, mapper, resolveFacetConfigPath(datapath));
-    querier = new Querier(indexdir, taxdir, mapper, indexer.fconfig);
+    // TODO configurable
+    
+    fconfig = FacetsConfigHelper.loadFacetConfig(Paths.get(datapath + "/facets.yaml"));
+
+    indexer = new Indexer(indexdir, taxdir, mapper, fconfig);
+    querier = new Querier(indexdir, taxdir, mapper, fconfig);
     suggester = new Suggester(suggestdir);
 
     // suggester.ingest("./testdata/autocomplete_places.csv");
@@ -184,23 +193,6 @@ public class Enlight {
       System.out.println("Closed");
 
     }
-  }
-
-  private Path resolveFacetConfigPath(String datapath) {
-    var dataDir = Paths.get(datapath);
-    var candidates = new Path[] {
-        dataDir.resolve("facets.yaml"),
-        Paths.get("facets.yaml"),
-        Paths.get("ingest").resolve("facets.yaml")
-    };
-
-    for (var candidate : candidates) {
-      if (Files.exists(candidate)) {
-        return candidate;
-      }
-    }
-
-    return dataDir.resolve("facets.yaml");
   }
 
   private void ensureDirectoryExists(Path path) throws IOException {
