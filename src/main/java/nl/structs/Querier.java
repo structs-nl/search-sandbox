@@ -64,10 +64,10 @@ public class Querier {
     this.mapper = mapper;
     this.fconfig = fconfig;
 
+    analyzer = new StandardAnalyzer();
     indexReader = DirectoryReader.open(indexdir);
     taxoReader = new DirectoryTaxonomyReader(taxdir);
     indexSearcher = new IndexSearcher(indexReader);
-    analyzer = new StandardAnalyzer();
     searchstates = new SearchStates();
 
     highlighter = new HighlightsAsObject(UnifiedHighlighter.builder(indexSearcher, analyzer)

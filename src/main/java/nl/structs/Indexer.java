@@ -39,6 +39,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.lucene.document.Field;
@@ -74,6 +75,32 @@ class Indexer {
     iw = new IndexWriter(dir, iwc);
     dtw = new DirectoryTaxonomyWriter(taxdir);
 
+  }
+
+  static void initializeEmptyIndexesIfNeeded(Path indexPath, Path taxPath) throws IOException {
+    if (hasExistingContent(indexPath) || hasExistingContent(taxPath)) {
+      return;
+    }
+
+    try (var indexDir = FSDirectory.open(indexPath);
+         IndexWriter writer = new IndexWriter(indexDir, new IndexWriterConfig(new StandardAnalyzer()))) {
+      writer.commit();
+    }
+
+    try (var taxDir = FSDirectory.open(taxPath);
+         DirectoryTaxonomyWriter taxonomyWriter = new DirectoryTaxonomyWriter(taxDir)) {
+      taxonomyWriter.commit();
+    }
+  }
+
+  private static boolean hasExistingContent(Path path) throws IOException {
+    if (!Files.exists(path)) {
+      return false;
+    }
+
+    try (var stream = Files.list(path)) {
+      return stream.findAny().isPresent();
+    }
   }
 
   public void indexURL(String url)
@@ -112,7 +139,9 @@ class Indexer {
           if (doc.has("fields")){
           var fields = doc.get("fields");
             if (fields.isArray()) {
+              //System.out.println(docPointer);
               indexFields(fields, docPointer + "/fields");
+            
             } else {
               throw new IllegalArgumentException("the fields object must contain an array");
             }
@@ -132,6 +161,10 @@ class Indexer {
       } else {
         throw new IllegalArgumentException("the top level must be a documents or fields field");
       }
+
+      dtw.commit();
+      iw.commit();
+
   }
 
   public void indexFields(JsonNode doc, String pointerprefix)
@@ -142,7 +175,7 @@ class Indexer {
     // TODO check the parsing of a document and adjust the facet config
     // TODO: error when a facet is not in the config?
 
-    String identifyingField = "";
+    String identifyingFieldName = "";
     String identifyingValue = "";
 
     if (! doc.isArray()) {
@@ -179,16 +212,46 @@ class Indexer {
       //  throw new IllegalArgumentException(fieldPointer + "/store: each field must contain a boolean store flag");
       //}
 
-      var identifierNode = field.at("/identifier");
+      //var identifierNode = field.at("/identifier");
       //if (identifierNode.isMissingNode() || identifierNode.isEmpty() || !identifierNode.isBoolean()) {
       //  throw new IllegalArgumentException(fieldPointer + "/identifier: each field must contain a boolean identifier flag");
       //}
 
       var fieldType = typeNode.asText();
       var fieldStore = storeNode.asBoolean();
-      var fieldIdentifer = identifierNode.asBoolean();
+      //var fieldIdentifer = identifierNode.asBoolean();
 
-      if (fieldType.equals("annotatedtext")) {
+      if (fieldType.equals("string")) {
+
+        if (!valueNode.isTextual()) {
+          throw new IllegalArgumentException(fieldPointer + "/value: string field '" + fieldName + "' must be textual");
+        }
+
+        // TODO: default for all fields
+        var store = Field.Store.YES;
+        if (!fieldStore)
+          store = Field.Store.NO;
+
+        var stringfield = new StringField(fieldName, valueNode.asText(), Store.YES);
+
+        // TODO: generalize: add an optional identifying bool property. and what about integers?
+
+        if (fieldName.equals("identifier")) {
+          identifyingFieldName = fieldName;
+          identifyingValue = valueNode.asText();    
+        }
+
+        luceneDoc.add(stringfield);
+
+      } else if (fieldType.equals("integer")) {
+
+        if (!valueNode.isInt()) {
+          throw new IllegalArgumentException(fieldPointer + "/value: integer field '" + fieldName + "' must be an integer");
+        }
+
+        luceneDoc.add(new IntField(fieldName, valueNode.asInt(), Store.YES));
+
+      } else if (fieldType.equals("annotatedtext")) {
 
         if (!valueNode.isTextual()) {
           throw new IllegalArgumentException(fieldPointer + "/value: annotated text field '" + fieldName + "' must be textual");
@@ -286,24 +349,6 @@ class Indexer {
         
         // 1607-01-01 - 1796-12-31
 
-      } else if (fieldType.equals("string")) {
-
-        if (!valueNode.isTextual()) {
-          throw new IllegalArgumentException(fieldPointer + "/value: string field '" + fieldName + "' must be textual");
-        }
-
-        var store = Field.Store.NO;
-        if (fieldStore)
-          store = Field.Store.YES;
-
-        // TODO: shouldn't it be the same field?
-
-        if (fieldIdentifer) {
-          identifyingField = fieldName;
-          identifyingValue = valueNode.asText();
-        }
-
-        luceneDoc.add(new StringField(fieldName, valueNode.asText(), Store.YES));
 
       } else if (fieldType.equals("facet")) {
 
@@ -328,14 +373,6 @@ class Indexer {
           throw new IllegalArgumentException(fieldPointer + "/value: facet field '" + fieldName + "' must be an array");
         }
 
-      } else if (fieldType.equals("integer")) {
-
-        if (!valueNode.isInt()) {
-          throw new IllegalArgumentException(fieldPointer + "/value: integer field '" + fieldName + "' must be an integer");
-        }
-
-        luceneDoc.add(new IntField(fieldName, valueNode.asInt(), Store.YES));
-
       } else {
         throw new IllegalArgumentException(fieldPointer + "/type: unsupported field type '" + fieldType + "' for field '" + fieldName + "'");
       }
@@ -343,14 +380,13 @@ class Indexer {
       fieldIndex++;
     }
 
-    if (identifyingField.isEmpty() || identifyingValue.isEmpty()) {
-      throw new IllegalArgumentException(pointerprefix + ": document payload must contain exactly one identifying field");
+    if (identifyingFieldName.isEmpty() || identifyingValue.isEmpty()) {
+      throw new IllegalArgumentException(pointerprefix + ": document payload must contain an identifying field");
     }
 
-    iw.updateDocument(new Term(identifyingField, identifyingValue), fconfig.build(dtw, luceneDoc));
+    // TODO: shouln't we use the identifyingField?
+    iw.updateDocument(new Term(identifyingFieldName, identifyingValue), fconfig.build(dtw, luceneDoc));
 
-    dtw.commit();
-    iw.commit();
   }
 
   public void close() throws IOException {

@@ -1,6 +1,5 @@
 import boto3
-import gzip
-import orjson
+import requests
 
 session = boto3.Session(profile_name='surf')
 s3_client = session.client('s3')
@@ -17,8 +16,22 @@ objects = []
 for response in page_iterator:
     objects.extend(response.get('Contents', []))
 
+cont = False
+last = "objects/inventory/1565.index.json"
+
 for content in objects:
     key = content['Key']
 
-    if key.endswith('.index.json'):
-        print(url_prefix + key)
+    if key == last:
+        cont = True
+
+    if cont & key.endswith('.index.json'):
+
+
+        body = url_prefix + key
+        url = "http://localhost:8080/ingest/doc"
+        print(body)
+        
+        requests.put(url, data=body, headers={"Content-Type": "text/plain"})
+
+        # 1565.index.json 

@@ -31,6 +31,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -48,9 +49,8 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.IOUtils;
 import org.apache.lucene.facet.FacetsConfig;
+import org.apache.lucene.store.FSDirectory;
 
 
 public class Enlight {
@@ -125,15 +125,29 @@ public class Enlight {
       throw e;
     }
 
+
     var datapath = cmd.getOptionValue("path");
     var port = cmd.getOptionValue("port");
 
+    var configpath = Paths.get(datapath + "/config.yaml");
+
+    if (!Files.exists(configpath)) {
+      // TODO: create a new configfile
+
+    }
+
+    var configfile = configpath.toFile();
+    var config = new YAMLMapper().readTree(configfile);
+
     var indexpath = Paths.get(datapath + "/index/");
     ensureDirectoryExists(indexpath);
-    indexdir = FSDirectory.open(indexpath);
 
     var taxpath = Paths.get(datapath + "/tax/");
     ensureDirectoryExists(taxpath);
+
+    Indexer.initializeEmptyIndexesIfNeeded(indexpath, taxpath);
+
+    indexdir = FSDirectory.open(indexpath);
     taxdir = FSDirectory.open(taxpath);
 
     var suggestpath = Paths.get(datapath + "/suggest/");
@@ -149,7 +163,7 @@ public class Enlight {
 
     // TODO configurable
     
-    fconfig = FacetsConfigHelper.loadFacetConfig(Paths.get(datapath + "/facets.yaml"));
+    fconfig = ConfigHelper.loadFacetConfig(config);
 
     indexer = new Indexer(indexdir, taxdir, mapper, fconfig);
     querier = new Querier(indexdir, taxdir, mapper, fconfig);
@@ -252,6 +266,7 @@ public class Enlight {
       } catch (Exception e) {
         var responseMessage = e.getMessage() != null ? e.getMessage() : "Invalid request";
         write (ctx, BAD_REQUEST, responseMessage);
+        e.printStackTrace(System.out);
       }
 
       // TODO After the request is handled, clean old search states

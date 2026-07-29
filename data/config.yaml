@@ -1,0 +1,9 @@
+facets:
+  - hierarchical: true
+    multivalued: true
+    drillDownTermsIndexing: ALL_PATHS_NO_DIM
+    requireDimCount: true
+    dimensions:
+      - "ead"
+      - "professions"
+      - "documenttypes"
