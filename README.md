@@ -32,6 +32,7 @@ The patched code can be found in the following branch of Lucene 10.2.2: https://
 
 # Technical notes
 
-mvn clean compile exec:java -Dexec.mainClass="nl.structs.Enlight" -Dexec.args="-path ./data -port 8080 "
+mvn clean compile package
+java -Xmx8g -Xms3g -jar ./target/Enlight-0.2.jar -path ./data -port 8080
 
-java -Xmx4g -Xms3g -jar ./target/Enlight-0.2.jar -path ./data -port 8080 
+python3 ingest/ingest.py

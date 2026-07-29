@@ -16,16 +16,10 @@ objects = []
 for response in page_iterator:
     objects.extend(response.get('Contents', []))
 
-cont = False
-last = "objects/inventory/1565.index.json"
-
 for content in objects:
     key = content['Key']
 
-    if key == last:
-        cont = True
-
-    if cont & key.endswith('.index.json'):
+    if key.endswith('.index.json'):
 
 
         body = url_prefix + key
@@ -33,5 +27,3 @@ for content in objects:
         print(body)
         
         requests.put(url, data=body, headers={"Content-Type": "text/plain"})
-
-        # 1565.index.json 
