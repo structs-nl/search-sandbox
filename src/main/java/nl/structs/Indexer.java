@@ -107,7 +107,7 @@ class Indexer {
       throws IOException, URISyntaxException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
 
       // TODO: we can also support a list of URL's, separated by a newline
-
+      
       var uri = new URI(url);
 
       var conn = uri.toURL().openConnection();
@@ -119,6 +119,7 @@ class Indexer {
       }
     
       indexDocuments(mapper.readTree(inputstream), url + "#");
+
   }
 
   public void indexDocuments(JsonNode json, String pointerprefix)
@@ -385,8 +386,19 @@ class Indexer {
     }
 
     // TODO: shouln't we use the identifyingField?
-    iw.updateDocument(new Term(identifyingFieldName, identifyingValue), fconfig.build(dtw, luceneDoc));
+    try {
+      iw.updateDocument(new Term(identifyingFieldName, identifyingValue), fconfig.build(dtw, luceneDoc));
+    } catch (Exception e) {
+      System.out.println(pointerprefix);
+      throw e;
+      // throw new IndexingException(pointerprefix, e);
+    }
+  }
 
+  public class IndexingException extends RuntimeException { 
+    public IndexingException(String errorMessage, Throwable err) {
+      super(errorMessage, err);
+    }
   }
 
   public void close() throws IOException {
