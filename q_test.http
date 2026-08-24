@@ -8,8 +8,8 @@ PUT http://localhost:8080/query HTTP/1.1
 Content-Type: "application/json"
 
 {
-    "pagesize": 3,
-    "query": "batavia",
+    "pagesize": 12,
+    "query": "voc"
 
     //"query": "fn:containedBy(Anthonij fn:phrase(Axel Anthonij Rosenquest))",
    // "query": "fn:containedBy(anthonij person00001)",
@@ -22,9 +22,9 @@ Content-Type: "application/json"
     // "query": "\"balinees batavia\"~100",
     // "query": "fn:maxgaps(10 fn:ordered(radja batavia))",
 
-    "facets": [
-        {"dimension": "parents", "filters": []}
-    ]
+    //"facets": [
+    //    {"dimension": "parents", "filters": []}
+    //]
 }
 
 

@@ -41,9 +41,13 @@ public class HighlightsFormatter extends PassageFormatter {
         int end = passage.getMatchEnds()[i];
         BytesRef term = passage.getMatchTerms()[i];
 
+
+        int prefixstart = (start - prefixlength) > 0 ? start - prefixlength : 0;
+        int suffixend = end + suffixlength < content.length() ?  end + suffixlength : content.length();
+
         result.add(new HighlightResult(start, end, term.utf8ToString(), content.substring(start, end),
-            content.substring(start - prefixlength, start),
-            content.substring(end, end + suffixlength)));
+            content.substring(prefixstart, start),
+            content.substring(end, suffixend)));
       }
     }
 
