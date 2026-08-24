@@ -286,6 +286,8 @@ class Indexer {
             }
 
             var tag = tagNode.asText();
+            // distinguish the tags from other terms and make them lower case. Otherwise, we cannot find them with the standard analyzer on the query
+            tag = "tag_" + tag.toLowerCase().trim();
             var from = fromNode.asInt();
             var to = toNode.asInt();
             annotations.add(new Annotation(from, to, tag));

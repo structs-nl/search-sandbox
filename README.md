@@ -46,6 +46,6 @@ git clone https://github.com/structs-nl/enlight
 cd enlight
 
 mvn compile package
-java -Xmx8g -jar target/Enlight-0.1.jar -path ./data -port 8080
+java -Xmx8g -jar target/Enlight-0.1.jar -path ./data -port 8080 > enlight.log 2>&1
 
 python3 ingest/ingest.py

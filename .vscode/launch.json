@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "TokenizeTest",
+            "request": "launch",
+            "mainClass": "main.java.nl.structs.TokenizeTest",
+            "projectName": "Enlight"
+        },
+        {
+            "type": "java",
             "name": "Debug Enlight",
             "request": "launch",
             "mainClass": "nl.structs.Enlight",
