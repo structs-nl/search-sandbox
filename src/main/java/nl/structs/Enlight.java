@@ -31,6 +31,8 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonParser;
+
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 import java.io.BufferedWriter;
@@ -55,7 +57,9 @@ import org.apache.lucene.store.FSDirectory;
 
 public class Enlight {
 
-  protected ObjectMapper mapper = new ObjectMapper();
+  protected ObjectMapper mapper = new ObjectMapper()
+            .configure(JsonParser.Feature.ALLOW_COMMENTS, true)
+            .configure(JsonParser.Feature.ALLOW_YAML_COMMENTS, true);
 
   protected Suggester suggester;
   protected Indexer indexer;
@@ -137,7 +141,8 @@ public class Enlight {
     }
 
     var configfile = configpath.toFile();
-    var config = new YAMLMapper().readTree(configfile);
+    var yamlMapper = new YAMLMapper();
+    var config = yamlMapper.readTree(configfile);
 
     var indexpath = Paths.get(datapath + "/index/");
     ensureDirectoryExists(indexpath);

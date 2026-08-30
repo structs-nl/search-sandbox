@@ -184,8 +184,11 @@ public class Querier {
           // TODO: no continuation and no query: error
         }
 
-        for (var facet : json.at("/facets")) {
-          if (!facet.isMissingNode() && facet.isArray()) {
+
+      var facetsnode = json.at("/facets");
+      if (!facetsnode.isMissingNode() && facetsnode.isArray()) {
+
+        for (var facet : facetsnode) {
 
             var dimnode = facet.at("/dimension");
             if (!dimnode.isMissingNode() && dimnode.isTextual() && !dimnode.asText().isEmpty()) {
@@ -322,6 +325,7 @@ public class Querier {
 
         var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs,
             new int[] { searchquery.passageSize });
+
         var contentHighlights = high.get("content");
 
         gen.writeArrayFieldStart("docs");

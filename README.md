@@ -61,7 +61,7 @@ cd enlight
 
 mvn compile package
 
-java -Xmx8g -jar target/enlight-0.1.jar -path ./data -port 8080 > enlight.log 2>&1
+java -Xmx8g -jar target/enlight-0.1-SNAPSHOT.jar -path ./data -port 8080 > enlight.log 2>&1
 
 # Publishing stuff
 
