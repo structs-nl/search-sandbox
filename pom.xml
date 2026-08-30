@@ -2,13 +2,25 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>nl.structs</groupId>
-    <artifactId>Enlight</artifactId>
-    <version>0.1</version>
+    <artifactId>enlight</artifactId>
+    <version>0.1-SNAPSHOT</version>
     <properties>
       <maven.compiler.source>21</maven.compiler.source>
 	  <maven.compiler.target>21</maven.compiler.target>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>   
+    </properties>
+
+    <distributionManagement>
+        <repository>
+        <id>github</id>
+        <name>GitHub Packages</name>
+        <url>https://maven.pkg.github.com/structs-nl/enlight</url>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
+        </repository>
+    </distributionManagement>
+
     <dependencies>
 
         <dependency>

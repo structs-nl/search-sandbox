@@ -250,7 +250,7 @@ public class Enlight {
             // TODO make non blocking
 
             var content = httpRequest.content().toString(StandardCharsets.UTF_8);
-            indexer.indexURL(content);
+            indexer.index(content);
             write(ctx, OK);
 
           } else if (httpRequest.uri().startsWith("/ingest/suggest")) {
@@ -307,8 +307,8 @@ public class Enlight {
     ctx.write(response);
     ctx.write(new DefaultHttpContent(bodybuf));
     ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).addListener(ChannelFutureListener.CLOSE);
-  
   }
+  
   public static void main(String[] args) throws Exception {
     new Enlight(args);
   }

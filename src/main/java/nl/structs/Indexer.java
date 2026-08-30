@@ -9,8 +9,6 @@ import main.java.nl.structs.AnnotatedField;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.netty.buffer.ByteBuf;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
@@ -103,27 +101,45 @@ class Indexer {
     }
   }
 
-  public void indexURL(String url)
+  public void index(String input)
       throws IOException, URISyntaxException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
 
-      // TODO: we can also support a list of URL's, separated by a newline
-      
-      var uri = new URI(url);
-
-      var conn = uri.toURL().openConnection();
-      var encoding = conn.getContentEncoding();
-      var inputstream = conn.getInputStream();
-    
-      if (encoding.equals("gzip")) {
-        inputstream = new GZIPInputStream(inputstream);
+      var urls = input.split("\n");
+      for (var url : urls) {
+        var uri = new URI(url);
+        indexURL(uri);
       }
-    
-      indexDocuments(mapper.readTree(inputstream), url + "#");
+  }
+  public void indexURL(URI uri)
+      throws IOException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
 
+      var jsondoc = getJSON(uri);
+      var indexeableDocs = indexDocuments(jsondoc, uri.toString() + "#");
+
+      update(indexeableDocs);
+
+      dtw.commit();
+      iw.commit();
   }
 
-  public void indexDocuments(JsonNode json, String pointerprefix)
+  private JsonNode getJSON(URI uri)
+        throws IOException, JsonProcessingException, InterruptedException, UnsupportedCharsetException {
+
+      var conn = uri.toURL().openConnection();
+      var inputstream = conn.getInputStream();
+    
+      if (conn.getContentEncoding().equals("gzip")) {
+        inputstream = new GZIPInputStream(inputstream);
+      }
+      var json = mapper.readTree(inputstream);
+
+      return json;
+  }
+
+  public ArrayList<IndexeableDocument> indexDocuments(JsonNode json, String pointerprefix)
       throws IOException, JsonProcessingException, InterruptedException {
+
+      var indexeableDocs = new ArrayList<IndexeableDocument>();
 
       // The json can contain 
       // 1) a single document: a "fields" field with an array of fields
@@ -141,8 +157,8 @@ class Indexer {
           var fields = doc.get("fields");
             if (fields.isArray()) {
               //System.out.println(docPointer);
-              indexFields(fields, docPointer + "/fields");
-            
+            indexeableDocs.add(createDocument(fields, docPointer + "/fields"));
+              
             } else {
               throw new IllegalArgumentException("the fields object must contain an array");
             }
@@ -155,7 +171,9 @@ class Indexer {
 
         var fields = json.get("fields");
         if (fields.isArray()) {
-          indexFields(fields, pointerprefix + "/fields");
+          
+          indexeableDocs.add(createDocument(fields, pointerprefix + "/fields"));
+
         } else {
           throw new IllegalArgumentException("the fields object must contain an array");
         }
@@ -163,12 +181,26 @@ class Indexer {
         throw new IllegalArgumentException("the top level must be a documents or fields field");
       }
 
-      dtw.commit();
-      iw.commit();
-
+      return indexeableDocs;
   }
 
-  public void indexFields(JsonNode doc, String pointerprefix)
+  private record IndexeableDocument( Document document, String identifyingFieldName, String identifyingValue, String path) {
+  }
+
+  private void update(ArrayList<IndexeableDocument> indexeableDocs) throws IOException {
+
+    for (var doc : indexeableDocs) {
+        try {
+          iw.updateDocument(new Term(doc.identifyingFieldName, doc.identifyingValue), fconfig.build(dtw, doc.document));
+        } catch (Exception e) {
+          System.out.println(doc.path);
+            throw e;
+            // throw new IndexingException(pointerprefix, e);
+        }
+    }
+  }
+
+  private IndexeableDocument createDocument(JsonNode doc, String pointerprefix)
       throws IOException, JsonProcessingException, InterruptedException {
 
     var luceneDoc = new Document();
@@ -370,8 +402,6 @@ class Indexer {
                 luceneDoc.add(new FacetField(fieldName, parpath.toArray(new String[0])));
             }
           }
-
-          
         } else {
           throw new IllegalArgumentException(fieldPointer + "/value: facet field '" + fieldName + "' must be an array");
         }
@@ -387,14 +417,8 @@ class Indexer {
       throw new IllegalArgumentException(pointerprefix + ": document payload must contain an identifying field");
     }
 
-    // TODO: shouln't we use the identifyingField?
-    try {
-      iw.updateDocument(new Term(identifyingFieldName, identifyingValue), fconfig.build(dtw, luceneDoc));
-    } catch (Exception e) {
-      System.out.println(pointerprefix);
-      throw e;
-      // throw new IndexingException(pointerprefix, e);
-    }
+    return new IndexeableDocument(luceneDoc, identifyingFieldName, identifyingValue, pointerprefix);
+
   }
 
   public class IndexingException extends RuntimeException { 

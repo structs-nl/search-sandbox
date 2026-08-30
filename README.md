@@ -7,8 +7,7 @@ It is easy to work with, with very little configuration. For more advanced use-c
 
 Elastic and Solr expose a great deal of the Lucene Java API via REST. Enlight does not do that. It simply uses the Lucene Java API and allows to tailor the REST API for your specific needs.
 
-It currently does not support replication, as there is no need for it at this moment. For static indices, multiple nodes can provide a very simple form of replication. For near realtime replication, the segment based replication module of Lucene can be used. This is developed for use-cases where the document-based replication won't do it.
-
+It does not support replication, as there is no need for it at this moment. For static indices, multiple nodes can provide replication by copying the index. For near realtime replication, the segment based replication module of Lucene can be used. This is developed for use-cases where the document-based replication won't do it.
 
 ## A short description of the code
 
@@ -22,7 +21,7 @@ It currently does not support replication, as there is no need for it at this mo
 
 ## AnnotateFilter
 
-The https://github.com/structs-nl/AnnotateFilter class is a submodule that allows the addition of annotations to the index. These annotations can be searched for and can highlighted in our custom highlighter. This code is almost done an can then be included in the indexing process.
+The https://github.com/structs-nl/AnnotateFilter class is a submodule that allows the addition of annotations to the index. These annotations can be searched for and can highlighted in our custom highlighter.
 
 ## Interval query using the position length
 
@@ -30,9 +29,19 @@ The annotations have a positionlength that is not stored in the index. Via anoth
 
 The patched code can be found in the following branch of Lucene 10.2.2: https://github.com/structs-nl/lucene/tree/PosLenQuery-10.2.2. Only the lucene-queries and lucene-queryparser jar's are needed. Lucene queries contains the changes (lucene/queries/src/java/org/apache/lucene/queries/intervals/TermIntervalsSource.java). Queries uses this patched file in the interval queries.
 
-Publishing the 
 
-# Getting stuff running
+# Configuring and running stuff
+
+
+
+
+# Getting stuff in
+
+TODO install
+
+python3 ingest/ingest.py
+
+# Building stuff
 
 Make sure java 21 is present
 
@@ -48,10 +57,15 @@ cd ..
 
 git clone https://github.com/structs-nl/enlight
 
-cd Enlight
+cd enlight
 
 mvn compile package
 
-java -Xmx8g -jar target/Enlight-0.1.jar -path ./data -port 8080 > enlight.log 2>&1
+java -Xmx8g -jar target/enlight-0.1.jar -path ./data -port 8080 > enlight.log 2>&1
 
-python3 ingest/ingest.py
+# Publishing stuff
+
+echo $CR_PAT | docker login ghcr.io -u rgoene --password-stdin
+docker build --tag ghcr.io/structs-nl/enlight:latest --push .
+
+mvn -Drepo.id=github -Drepo.login=rgoene -Drepo.pwd=$CR_PAT deploy

@@ -2,14 +2,12 @@
 // https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/flexible/standard/nodes/intervalfn/package-summary.html
 // https://lucene.apache.org/core/10_2_2/queryparser/org/apache/lucene/queryparser/flexible/standard/StandardQueryParser.html
 
-
-
 PUT http://localhost:8080/query HTTP/1.1
 Content-Type: "application/json"
 
 {
     "pagesize": 12,
-    "query": "tag_person"
+    "query": "batavia"
 
     //"query": "fn:containedBy(Anthonij fn:phrase(Axel Anthonij Rosenquest))",
    // "query": "fn:containedBy(anthonij person00001)",
@@ -25,13 +23,16 @@ Content-Type: "application/json"
     //"facets": [
     //    {"dimension": "parents", "filters": []}
     //]
+
+
+    //"facets": [
+    //    {"dimension": "parents", "filters": [["a", "b", "c"]]}
+    //]
+
+    "fields": [
+        {
+        "name": "pages",
+        "type": "integer",
+        }
+    ]
 }
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,12 @@
-FROM eclipse-temurin:21-alpine
-RUN mkdir /opt/data /opt/app
-COPY ./target/Enlight-0.1.jar /opt/app/
-CMD ["java", "-Xmx8g", "-jar", "/opt/app/Enlight-0.1.jar", "-path", "/opt/data", "-serve", "8080"]
+FROM eclipse-temurin:21-jre-alpine
+
+LABEL org.opencontainers.image.source=https://github.com/structs-nl/enlight
+
+ARG JVM_XMX=8g
+RUN mkdir /opt/app
+VOLUME /data
+
+COPY ./target/enlight-0.1.jar /opt/app/
+EXPOSE 8080
+
+CMD ["java", "-Xmx${JVM_XMX}", "-jar", "/opt/app/enlight-0.1.jar", "-path", "/data", "-serve", "8080"]

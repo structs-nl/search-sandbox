@@ -28,7 +28,6 @@ import org.apache.lucene.queryparser.flexible.standard.StandardQueryParser;
 
 import org.apache.lucene.util.IOUtils;
 
-import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.facet.Facets;
 import org.apache.lucene.search.BooleanQuery;
@@ -40,11 +39,11 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.facet.FacetsConfig;
 
 import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.uhighlight.UnifiedHighlighter;
 import org.apache.lucene.store.FSDirectory;
 
 import nl.structs.HighlightsFormatter.HighlightResult;
+import nl.structs.Querier.SearchQuery.PathFilter;
 
 public class Querier {
 
@@ -78,6 +77,7 @@ public class Querier {
   public void close() throws IOException {
     IOUtils.close(indexReader, taxoReader);
   }
+
   public class SearchStates {
     private Map<String, SearchState> states = new HashMap<String, SearchState>();
 
@@ -86,18 +86,18 @@ public class Querier {
       // TODO: only check max once per hour
 
       var current = new Date().getTime();
-      for (var state: states.entrySet()) {
+      for (var state : states.entrySet()) {
         var age = current - state.getValue().timestamp.getTime();
-        if (age > 86400 * 1000  /* 1 day; perhaps shorten to 6 hours */) {
+        if (age > 86400 * 1000 /* 1 day; perhaps shorten to 6 hours */) {
           states.remove(state.getKey());
         }
       }
     }
 
     public SearchState add(Query query, ScoreDoc doc) {
-        var state =  new SearchState(query, doc);
-        states.put(state.uuid.toString(), state);
-        return state;
+      var state = new SearchState(query, doc);
+      states.put(state.uuid.toString(), state);
+      return state;
     }
 
     public SearchState get(String uuid) {
@@ -122,55 +122,113 @@ public class Querier {
   public static class SearchQuery {
 
     public String queryid = "";
-    public Integer pageSize;
+    public int pageSize = 15;
+    public int passageSize = 10;
     public String queryString = "";
-
+    public boolean continuation = false;
+    
     public LinkedList<PathFilter> facetfilters = new LinkedList<PathFilter>();
     public LinkedList<String> facetdimensions = new LinkedList<String>();
+    public LinkedList<Field> fields = new LinkedList<Field>();
 
     public SearchQuery(JsonNode json) {
-      // TODO error handling
 
       var qidnode = json.at("/qid");
-      if (!qidnode.isMissingNode() && !qidnode.isNull() && !qidnode.asText().isEmpty()) {
+
+      if (!qidnode.isMissingNode() && qidnode.isTextual() && !qidnode.asText().isEmpty()) {
+        // Continuing an existing query
+        // Only a few aspects of the stored query can be changed when we are dealing
+        // with a continuation
+        continuation = true;
         this.queryid = qidnode.asText();
-        // TODO: ignore the rest, except the pagesize
       }
 
       var pagenode = json.at("/pagesize");
-      if (!pagenode.isMissingNode() && !pagenode.isNull() && !pagenode.asText().isEmpty()) {
+      if (!pagenode.isMissingNode() && pagenode.isInt()) {
         this.pageSize = pagenode.asInt();
       }
 
-      var querynode = json.at("/query");
-      if (!querynode.isMissingNode() && !querynode.isNull() && !querynode.asText().isEmpty()) {
-        this.queryString = querynode.asText();
+      var passagenode = json.at("/passagesize");
+      if (!passagenode.isMissingNode() && passagenode.isInt()) {
+        this.passageSize = passagenode.asInt();
       }
 
-      for (var facet : json.at("/facets")) {
+      var fieldsnode = json.at("/fields");
+      if (!fieldsnode.isMissingNode() && fieldsnode.isArray()) {
+        for (var fieldnode :fieldsnode) {
+            var namenode = fieldnode.at("/name");
+            var typenode = fieldnode.at("/type");
 
-        var dimnode = facet.at("/dimension");
-        if (!dimnode.isMissingNode() && !dimnode.isNull() && !dimnode.asText().isEmpty()) {
-          this.facetdimensions.add(dimnode.asText());
+            if (namenode.isMissingNode() || !namenode.isTextual() || namenode.asText().isEmpty()) {
+              // TODO: a field needs a name: error
+            }
 
-          var filters = facet.at("/filters");
-          if (!filters.isMissingNode() && !filters.isNull() && filters.isArray()) {
+            if (typenode.isMissingNode() || !typenode.isTextual() || typenode.asText().isEmpty()) {
+              // TODO: a field needs a type: error
+            }
+            
+            // TODO: check the types here?
 
-            for (var filter: filters) {
-              if (!filter.isMissingNode() && !filter.isNull() && filter.isArray()) {
-                var path = new LinkedList<String>();
-                for (var pathnode : filter) {
-                  if (!pathnode.isMissingNode() && !pathnode.isNull() && !pathnode.asText().isEmpty()) {
-                    path.add(pathnode.asText());
+            fields.add(new Field(namenode.asText(),typenode.asText()));
+        }
+      } else {
+        // TODO: is the fields array mandatory?
+      }
+
+      if (continuation == false) {
+
+        var querynode = json.at("/query");
+        if (!querynode.isMissingNode() && querynode.isTextual() && !querynode.asText().isEmpty()) {
+          this.queryString = querynode.asText();
+        } else {
+          // TODO: no continuation and no query: error
+        }
+
+        for (var facet : json.at("/facets")) {
+          if (!facet.isMissingNode() && facet.isArray()) {
+
+            var dimnode = facet.at("/dimension");
+            if (!dimnode.isMissingNode() && dimnode.isTextual() && !dimnode.asText().isEmpty()) {
+
+              this.facetdimensions.add(dimnode.asText());
+
+              var filters = facet.at("/filters");
+              // filters is an array of arrays of strings
+
+              if (!filters.isMissingNode() && filters.isArray()) {
+
+                for (var filter : filters) {
+
+                  if (!filter.isMissingNode() && filter.isArray()) {
+                
+                    // the array of strings is encoded in a pathfilter, together with the dimension
+                    var path = new LinkedList<String>();
+
+                    for (var pathnode : filter) {
+                      if (!pathnode.isMissingNode() && dimnode.isTextual() && !pathnode.asText().isEmpty()) {
+                        path.add(pathnode.asText());
+                      } else {
+                        // TODO: the values of the path array should all be strings: error
+                      }
+                    }
+                    facetfilters.add(new PathFilter(dimnode.asText(), path.toArray(new String[path.size()])));
+
+                  } else {
+                    // TODO: filters should be an array: error
                   }
                 }
-                facetfilters.add(new PathFilter(dimnode.asText(), path.toArray(new String[path.size()])));
+              } else {
+                // TODO: no filters on a facet: error
               }
+            } else {
+              // TODO: no dimension of a facet: error
             }
           }
         }
       }
     }
+
+    public record Field (String name, String type) {}
 
     public class PathFilter {
       public String dimension;
@@ -189,7 +247,8 @@ public class Querier {
     TopDocs topdocs = null;
     Query currentQuery = null;
 
-    // TODO Check if the index should be re-opened after a write operation. We don't need that for now
+    // TODO Check if the index should be re-opened after a write operation
+    // We don't need that for now
 
     var bodybuf = Unpooled.directBuffer(8);
     var byteoutput = new ByteBufOutputStream(bodybuf);
@@ -204,7 +263,6 @@ public class Querier {
       if (searchquery.queryid.isEmpty() == false) {
 
         // Continue a stored query
-        
         var searchstate = searchstates.get(searchquery.queryid);
         topdocs = indexSearcher.searchAfter(searchstate.doc, searchstate.query, searchquery.pageSize);
         searchstate.doc = topdocs.scoreDocs[topdocs.scoreDocs.length - 1];
@@ -219,18 +277,12 @@ public class Querier {
         var querybuilder = new BooleanQuery.Builder();
         var standardparser = new StandardQueryParser(analyzer);
 
-        // TODO: filter out the dimensions
-        // querybuilder.add(new TermQuery(new Term("type", "file")),
-        // BooleanClause.Occur.FILTER);
-
         if (searchquery.queryString.isEmpty() == false) {
           querybuilder.add(standardparser.parse(searchquery.queryString, "content"), BooleanClause.Occur.MUST);
         }
 
         var query = querybuilder.build();
         var dq = new DrillDownQuery(fconfig, query);
-
-        // TODO test the facet filters
 
         for (var filter : searchquery.facetfilters) {
           if (filter.path.length > 0) {
@@ -247,12 +299,13 @@ public class Querier {
 
         if (topdocs.scoreDocs.length > 0) {
 
-          // Store the query and output the facets. this is only done for new, not for continued queries
+          // Store the query and output the facets. this is only done for new, not for
+          // continued queries
 
           var searchstate = searchstates.add(currentQuery, topdocs.scoreDocs[topdocs.scoreDocs.length - 1]);
           gen.writeStringField("qid", searchstate.uuid.toString());
           gen.writeArrayFieldStart("facets");
-          
+
           for (var dimension : searchquery.facetdimensions) {
             gen.writeStartObject();
             gen.writeStringField("dimension", dimension);
@@ -266,9 +319,9 @@ public class Querier {
       if (topdocs.scoreDocs.length > 0) {
 
         // Document result rendering. This is used for new and continued queries.
-        // TODO the number of highlights should be part of the query
 
-        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs, new int[] { 100 });
+        var high = highlighter.highlight(new String[] { "content" }, currentQuery, topdocs.scoreDocs,
+            new int[] { searchquery.passageSize });
         var contentHighlights = high.get("content");
 
         gen.writeArrayFieldStart("docs");
@@ -279,13 +332,16 @@ public class Querier {
 
           gen.writeStartObject();
 
-          // TODO the fields should be part of the query
+          for (var field : searchquery.fields) {
 
-          var title = doc.get("title");
-          var uuid = doc.get("uuid");
+            if (field.type.equals("string")) {
+              var fieldvalue = doc.get(field.name);
+              gen.writeStringField(field.name, fieldvalue);
 
-          gen.writeStringField("title", title);
-          gen.writeStringField("uuid", uuid);
+            } else if (field.type.equals("integer")) {
+              // TODO: add support for the integer type
+            }
+          }
 
           gen.writeArrayFieldStart("highlights");
           @SuppressWarnings("unchecked")
@@ -310,25 +366,25 @@ public class Querier {
 
       gen.writeEndObject();
       gen.close();
-
-      // TODO: is this correct here?
-      byteoutput.close();
+      byteoutput.close(); // TODO: I don't think we need to release a reference to to buffer, but check!
 
       return bodybuf;
 
     } catch (Exception e) {
 
-      // TODO: send to client
+      // TODO: proper logging
       System.out.println(e.toString());
       System.out.println(Arrays.toString(e.getStackTrace()));
       return bodybuf;
     }
   }
 
-  private void writeFacetsRecurse(JsonGenerator gen, Facets facets, String dimension, String... path) throws IOException {
-    
+  private void writeFacetsRecurse(JsonGenerator gen, Facets facets, String dimension, String... path)
+      throws IOException {
+
     var result = facets.getAllChildren(dimension, path);
-    if (result == null) return;
+    if (result == null)
+      return;
 
     gen.writeArrayFieldStart("children");
     for (var lv : result.labelValues) {
@@ -338,9 +394,9 @@ public class Querier {
 
       var childPath = Arrays.copyOf(path, path.length + 1);
       childPath[path.length] = lv.label;
-    
+
       writeFacetsRecurse(gen, facets, dimension, childPath);
-      
+
       gen.writeEndObject();
     }
     gen.writeEndArray();
