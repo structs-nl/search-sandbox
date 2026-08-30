@@ -5,14 +5,25 @@ PUT http://localhost:8080/query HTTP/1.1
 Content-Type: "application/json"
 
 {
-    "pagesize": 8,
-    "passagesize": 2,
+    "pagesize": 4,
+    "passagesize": 1,
     
     //"query": "batavia",
     //"query": "tag_timespan",
-    //"query": "tag_person",
-    // "query": "\"tag_person anthonij\"~5",
+    // "query": "tag_person",
+
+    //"query": "\"tag_person anthonij\"~1",
+    // "query": "\"tag_person anthonij\"~0",
+    
+    //"query": "batavi*",
+    //"query": "fn:ordered(ian gerhard hof)",
+
+    "query": "fn:containedBy(tag_person anthonij) AND fn:containedBy(tag_place batavia)",
+
+
     // "query": "batavia fn:containedBy(tag_person anthonij)",
+    // "query": "inventorynumber:[1054 TO 1067]",
+    // "query": "[Ant TO Anthonij]",
 
     "facets": [
         //{"dimension": "ead", "filters": []}
