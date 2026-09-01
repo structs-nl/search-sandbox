@@ -1,5 +1,9 @@
-// https://lucene.apache.org/core/10_0_0/queryparser/org/apache/lucene/queryparser/flexible/standard/nodes/intervalfn/package-summary.html
+
 // https://lucene.apache.org/core/10_2_2/queryparser/org/apache/lucene/queryparser/flexible/standard/StandardQueryParser.html
+
+// https://lucene.apache.org/core/10_2_0/queryparser/org/apache/lucene/queryparser/flexible/standard/nodes/intervalfn/package-summary.html
+// https://lucene.apache.org/core/10_2_0/queries/org/apache/lucene/queries/intervals/package-summary.html
+
 
 PUT http://localhost:8080/query HTTP/1.1
 Content-Type: "application/json"
@@ -9,17 +13,21 @@ Content-Type: "application/json"
     "passagesize": 1,
     
     //"query": "batavia",
-    //"query": "tag_timespan",
-    // "query": "tag_person",
 
-    //"query": "\"tag_person anthonij\"~1",
-    // "query": "\"tag_person anthonij\"~0",
+    //"query": "tag_timespan",
+    "query": "tag_person",
+
+    //"query": "\"batavia anthonij\"~3",
+
+
+    //"query": "\"tag_person anthonij\"~0",
+     //"query": "\"tag_person coen\"~1",
     
     //"query": "batavi*",
     //"query": "fn:ordered(ian gerhard hof)",
 
-    "query": "fn:containedBy(tag_person anthonij) AND fn:containedBy(tag_place batavia)",
-
+    //"query": "fn:containedBy(tag_person anthonij)",
+    //"query": "fn:containedBy(tag_person fn:phrase(Anthonij Rosenquest))",
 
     // "query": "batavia fn:containedBy(tag_person anthonij)",
     // "query": "inventorynumber:[1054 TO 1067]",
@@ -27,25 +35,25 @@ Content-Type: "application/json"
 
     "facets": [
         //{"dimension": "ead", "filters": []}
-        //{"dimension": "ead", "filters": [["a", "b", "c"]]}
+        //{"dimension": "ead", "filters": [["41caf92e-91a5-5278-9f19-7337ac74d927"]]}
     ],
 
     "fields": [
         {
-        "name": "identifier",
-        "type": "string"
+            "name": "identifier",
+            "type": "string"
         },
         {
-        "name": "name",
-        "type": "string"
+            "name": "name",
+            "type": "string"
         },
         {
-        "name": "title",
-        "type": "string"
+            "name": "title",
+            "type": "string"
         },
         {
-        "name": "inventorynumber",
-        "type": "string"
+            "name": "inventorynumber",
+            "type": "string"
         }
     ]
 }
