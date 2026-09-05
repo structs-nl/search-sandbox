@@ -196,7 +196,7 @@ public class Querier {
               this.facetdimensions.add(dimnode.asText());
 
               var filters = facet.at("/filters");
-              // filters is an array of arrays of strings
+              // array of arrays of strings
 
               if (!filters.isMissingNode() && filters.isArray()) {
 

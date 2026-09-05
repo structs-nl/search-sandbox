@@ -22,32 +22,25 @@ import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
 
 import org.apache.lucene.index.Term;
-import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.apache.lucene.util.IOUtils;
 
 import java.time.LocalDate;
-import java.time.Period;
-import java.time.temporal.ChronoField;
-import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.zip.GZIPInputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.Field.Store;
-import org.apache.lucene.document.FieldType;
 
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.IntField;
 import org.apache.lucene.facet.FacetField;
-import org.apache.lucene.document.TextField;
 
 class Indexer {
 
@@ -184,8 +177,7 @@ class Indexer {
       return indexeableDocs;
   }
 
-  private record IndexeableDocument( Document document, String identifyingFieldName, String identifyingValue, String path) {
-  }
+  private record IndexeableDocument( Document document, String identifyingFieldName, String identifyingValue, String path) {}
 
   private void update(ArrayList<IndexeableDocument> indexeableDocs) throws IOException {
 
@@ -204,9 +196,6 @@ class Indexer {
       throws IOException, JsonProcessingException, InterruptedException {
 
     var luceneDoc = new Document();
-
-    // TODO check the parsing of a document and adjust the facet config
-    // TODO: error when a facet is not in the config?
 
     String identifyingFieldName = "";
     String identifyingValue = "";
@@ -351,41 +340,13 @@ class Indexer {
         var toDate = LocalDate.parse(toStr);
         var toEpochDay = toDate.toEpochDay();
       
-        // century quarter bucket specific
-        // x period per century if years > 0
-        // x period per year if years = 0
 
-        // TODO: move this to the indexing script
-
-        var bucketPeriod = Period.parse("P25Y");
-
-        // The start year of the century of the from date
-
-        var fromYearCentury = (fromDate.getYear() / 100) * 100;
-        var fromCenturyStart = LocalDate.of(fromYearCentury, 1, 1);
-        var fromYearCentQuarter = ((fromDate.getYear() - fromYearCentury ) / 25);
-
-        // The start year of the century of the to date
-        var toYearCentury = (toDate.getYear() / 100) * 100;
-        var toCenturyStart = LocalDate.of(toYearCentury, 1, 1);
-        var toYearCentQuarter = ((toDate.getYear() - toYearCentury ) / 25);
-
-        var bucketFirstStartDate = fromCenturyStart.plus(bucketPeriod.multipliedBy(fromYearCentQuarter));
-        var bucketLastStartDate = toCenturyStart.plus(bucketPeriod.multipliedBy(toYearCentQuarter));
-
-        // General from here
-        var periods = new ArrayList<LocalDate>();
-        var current = bucketFirstStartDate;
-
-        while (current.isBefore(bucketLastStartDate) || current.isEqual(bucketLastStartDate)) {
-          periods.add(current);
-          current = current.plus(bucketPeriod);
-        }
-        
-        // 1607-01-01 - 1796-12-31
+        // TODO add as range
 
 
       } else if (fieldType.equals("facet")) {
+
+        // TODO: what happens if a facet is not in the config? Default values?
 
         // This is always a list of lists
         // Otherwise, we cannot distinguish a path from a list of values
